@@ -1,11 +1,15 @@
 import Database from 'better-sqlite3';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
-const dbPath = process.env.SQLITE_PATH ?? path.join(process.cwd(), 'data', 'secwriteups.sqlite');
+const isNextProductionBuild = process.env.NEXT_PHASE === 'phase-production-build';
+const dbPath = isNextProductionBuild
+  ? path.join(os.tmpdir(), `ctflogs-build-${process.pid}.sqlite`)
+  : process.env.SQLITE_PATH ?? path.join(process.cwd(), 'data', 'secwriteups.sqlite');
 const dbDir = path.dirname(dbPath);
 
-// Ensure the SQLite directory exists (common issue on fresh VPS deploys).
+// Ensure the SQLite directory exists, which matters on fresh VPS deploys.
 fs.mkdirSync(dbDir, { recursive: true });
 
 export const db = new Database(dbPath);
