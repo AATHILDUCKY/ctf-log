@@ -21,7 +21,8 @@ export default function MarkdownContent({ content, fallback = 'Start writing to 
             );
           },
           img({ src = '', alt = '' }) {
-            const videoId = getYouTubeVideoId(src);
+            const resolvedSrc = typeof src === 'string' ? src : '';
+            const videoId = getYouTubeVideoId(resolvedSrc);
 
             if (videoId) {
               return (
@@ -37,7 +38,7 @@ export default function MarkdownContent({ content, fallback = 'Start writing to 
               );
             }
 
-            return <img src={src} alt={alt} loading="lazy" className="my-6 rounded-lg border border-dracula-line/40" />;
+            return <img src={resolvedSrc} alt={alt} loading="lazy" className="my-6 rounded-lg border border-dracula-line/40" />;
           },
         }}
       >

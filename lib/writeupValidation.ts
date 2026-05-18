@@ -8,11 +8,12 @@ export function parseWriteupInput(value: unknown): WriteupInput {
     throw new Error('Invalid writeup payload.');
   }
 
-  const input = value as Partial<WriteupInput> & { tags?: unknown };
-  const tags = Array.isArray(input.tags)
-    ? input.tags
-    : typeof input.tags === 'string'
-      ? input.tags.split(',')
+  const input = value as Partial<WriteupInput>;
+  const rawTags = (value as { tags?: unknown }).tags;
+  const tags = Array.isArray(rawTags)
+    ? rawTags
+    : typeof rawTags === 'string'
+      ? rawTags.split(',')
       : [];
 
   if (!input.title?.trim()) throw new Error('Title is required.');
