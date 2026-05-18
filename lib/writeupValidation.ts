@@ -1,7 +1,7 @@
 import { WriteupInput } from '@/types';
 import { getSiteSettings } from '@/lib/db/settings';
 
-const difficulties = ['Easy', 'Medium', 'Hard', 'Insane'] as const;
+const difficulties = ['Very Easy', 'Easy', 'Medium', 'Hard', 'Insane'] as const;
 
 export function parseWriteupInput(value: unknown): WriteupInput {
   if (!value || typeof value !== 'object') {

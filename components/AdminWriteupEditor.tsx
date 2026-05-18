@@ -32,7 +32,7 @@ import { Category, Writeup, WriteupInput } from '@/types';
 import { slugifyWriteupTitle } from '@/lib/writeupRoutes';
 
 const fallbackCategories: Category[] = ['CTF', 'HackTheBox', 'TryHackMe', 'VulnHub', 'Bug Bounty', 'CVE'];
-const difficulties: NonNullable<Writeup['difficulty']>[] = ['Easy', 'Medium', 'Hard', 'Insane'];
+const difficulties: NonNullable<Writeup['difficulty']>[] = ['Very Easy', 'Easy', 'Medium', 'Hard', 'Insane'];
 
 const ctfTemplate = `## Overview
 
@@ -162,6 +162,7 @@ const flagsTemplate = `## Flags / Proof
 export default function AdminWriteupEditor({ initialWriteup, initialDraft }: { initialWriteup?: Writeup | null; initialDraft: WriteupInput }) {
   const router = useRouter();
   const [draft, setDraft] = useState<WriteupInput>(initialDraft);
+  const [tagText, setTagText] = useState(initialDraft.tags.join(', '));
   const [settingsCategories, setSettingsCategories] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -224,6 +225,14 @@ export default function AdminWriteupEditor({ initialWriteup, initialDraft }: { i
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-');
     updateDraft('slug', normalized);
+  }
+
+  function updateTags(value: string) {
+    setTagText(value);
+    updateDraft(
+      'tags',
+      Array.from(new Set(value.split(',').map((tag) => tag.trim()).filter(Boolean))),
+    );
   }
 
   async function saveWriteup(event: FormEvent) {
@@ -490,13 +499,9 @@ export default function AdminWriteupEditor({ initialWriteup, initialDraft }: { i
 
           <Field label="Tags">
             <input
-              value={draft.tags.join(', ')}
-              onChange={(event) =>
-                updateDraft(
-                  'tags',
-                  Array.from(new Set(event.target.value.split(',').map((tag) => tag.trim()).filter(Boolean))),
-                )
-              }
+              value={tagText}
+              onChange={(event) => updateTags(event.target.value)}
+              onBlur={() => setTagText(draft.tags.join(', '))}
               className="admin-input"
               placeholder="web, enumeration, rce"
             />
@@ -925,7 +930,7 @@ function buildSeoPreview(draft: WriteupInput) {
     googleTitle: title || 'Untitled writeup',
     openGraphTitle: title || 'Untitled writeup',
     description: summary || 'Add a clear summary so search engines and social previews explain the writeup.',
-    url: slug ? `ctflogs.com/writeups/[id]/${slug}` : 'ctflogs.com/writeups/[id]/missing-slug',
+    url: slug ? `ctflogs.com/writeups/${slug}` : 'ctflogs.com/writeups/missing-slug',
     titleLength: title.length,
     descriptionLength: summary.length,
     wordCount,

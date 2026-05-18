@@ -14,7 +14,7 @@ export default function NewWriteupPage() {
     date: new Date().toISOString().slice(0, 10),
     summary: '',
     content: '# New writeup\n\n## Overview\n\n',
-    difficulty: 'Easy',
+    difficulty: 'Very Easy',
     status: 'private',
   };
 

@@ -22,7 +22,7 @@ export async function saveOptimizedWriteupImage(file: File) {
         const filename = `${randomUUID()}.webp`;
         await fs.writeFile(path.join(uploadDir, filename), output);
         return {
-          url: `/uploads/writeups/${filename}`,
+          url: `/api/writeup-images/${filename}`,
           size: output.byteLength,
         };
       }

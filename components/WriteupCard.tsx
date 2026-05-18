@@ -25,13 +25,15 @@ export default function WriteupCard({ writeup }: WriteupCardProps) {
             {writeup.difficulty && (
               <span
                 className={`text-[10px] font-bold uppercase tracking-wider ${
-                  writeup.difficulty === 'Easy'
-                    ? 'text-dracula-green'
-                    : writeup.difficulty === 'Medium'
-                      ? 'text-dracula-yellow'
-                      : writeup.difficulty === 'Hard'
-                        ? 'text-dracula-orange'
-                        : 'text-dracula-red'
+                  writeup.difficulty === 'Very Easy'
+                    ? 'text-dracula-cyan'
+                    : writeup.difficulty === 'Easy'
+                      ? 'text-dracula-green'
+                      : writeup.difficulty === 'Medium'
+                        ? 'text-dracula-yellow'
+                        : writeup.difficulty === 'Hard'
+                          ? 'text-dracula-orange'
+                          : 'text-dracula-red'
                 }`}
               >
                 {writeup.difficulty}

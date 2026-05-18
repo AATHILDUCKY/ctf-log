@@ -46,6 +46,7 @@ db.exec(`
 
   CREATE INDEX IF NOT EXISTS idx_writeups_status_date ON writeups(status, date DESC);
   CREATE INDEX IF NOT EXISTS idx_writeups_category ON writeups(category);
+  CREATE INDEX IF NOT EXISTS idx_writeups_slug ON writeups(slug);
 
   CREATE VIRTUAL TABLE IF NOT EXISTS writeups_fts USING fts5(
     id UNINDEXED,
@@ -144,7 +145,7 @@ function toWriteupListItem(row: Omit<WriteupRow, 'content'>): WriteupListItem {
 
 function sanitizeInput(input: WriteupInput): WriteupInput {
   const normalizedTitle = input.title.trim();
-  const normalizedSlug = String(input.slug ?? '').trim();
+  const normalizedSlug = slugifyWriteupTitle(String(input.slug ?? '').trim());
   const cleanedContent = input.content.trim();
   const wordCount = stripMarkdown(cleanedContent).split(/\s+/).filter(Boolean).length;
   const readingTimeMinutes = Math.max(1, Math.ceil(wordCount / 220));
@@ -156,11 +157,36 @@ function sanitizeInput(input: WriteupInput): WriteupInput {
     author: input.author.trim(),
     summary: input.summary.trim(),
     content: cleanedContent,
-    tags: input.tags.map((tag) => tag.trim().replace(/^#/, '')).filter(Boolean),
+    tags: normalizeTags(input.tags),
     wordCount,
     readingTimeMinutes,
     status: input.status,
   };
+}
+
+function normalizeTags(tags: string[]) {
+  return Array.from(
+    new Set(
+      tags
+        .flatMap((tag) => tag.split(','))
+        .map((tag) => tag.trim().replace(/^#/, ''))
+        .filter(Boolean),
+    ),
+  );
+}
+
+function uniqueSlug(baseSlug: string, currentId?: string) {
+  const fallbackSlug = baseSlug || 'writeup';
+  let slug = fallbackSlug;
+  let suffix = 2;
+
+  while (true) {
+    const existing = db.prepare('SELECT id FROM writeups WHERE slug = ? LIMIT 1').get(slug) as { id: string } | undefined;
+    if (!existing || existing.id === currentId) return slug;
+
+    slug = `${fallbackSlug}-${suffix}`;
+    suffix += 1;
+  }
 }
 
 export function listWriteups(options: { includePrivate?: boolean } = {}) {
@@ -300,10 +326,20 @@ export function getWriteup(id: string, options: { includePrivate?: boolean } = {
   return row ? toWriteup(row as WriteupRow) : null;
 }
 
+export function getWriteupBySlug(slug: string, options: { includePrivate?: boolean } = {}) {
+  const normalizedSlug = slugifyWriteupTitle(slug);
+  const row = options.includePrivate
+    ? db.prepare('SELECT * FROM writeups WHERE slug = ? ORDER BY date DESC, updated_at DESC LIMIT 1').get(normalizedSlug)
+    : db.prepare("SELECT * FROM writeups WHERE slug = ? AND status = 'public' ORDER BY date DESC, updated_at DESC LIMIT 1").get(normalizedSlug);
+
+  return row ? toWriteup(row as WriteupRow) : null;
+}
+
 export function createWriteup(input: WriteupInput) {
   const writeup = sanitizeInput(input);
   const now = new Date().toISOString();
   const id = randomUUID();
+  const slug = uniqueSlug(writeup.slug ?? slugifyWriteupTitle(writeup.title), id);
 
   db.prepare(`
     INSERT INTO writeups (
@@ -311,7 +347,7 @@ export function createWriteup(input: WriteupInput) {
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     id,
-    writeup.slug ?? null,
+    slug,
     writeup.title,
     writeup.category,
     JSON.stringify(writeup.tags),
@@ -336,13 +372,14 @@ export function createWriteup(input: WriteupInput) {
 export function updateWriteup(id: string, input: WriteupInput) {
   const writeup = sanitizeInput(input);
   const now = new Date().toISOString();
+  const slug = uniqueSlug(writeup.slug ?? slugifyWriteupTitle(writeup.title), id);
 
   db.prepare(`
     UPDATE writeups
     SET slug = ?, title = ?, category = ?, tags = ?, author = ?, date = ?, summary = ?, content = ?, difficulty = ?, word_count = ?, reading_time_minutes = ?, status = ?, updated_at = ?
     WHERE id = ?
   `).run(
-    writeup.slug ?? null,
+    slug,
     writeup.title,
     writeup.category,
     JSON.stringify(writeup.tags),

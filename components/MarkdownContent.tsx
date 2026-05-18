@@ -21,7 +21,7 @@ export default function MarkdownContent({ content, fallback = 'Start writing to 
             );
           },
           img({ src = '', alt = '' }) {
-            const resolvedSrc = typeof src === 'string' ? src : '';
+            const resolvedSrc = normalizeImageSrc(typeof src === 'string' ? src : '');
             const videoId = getYouTubeVideoId(resolvedSrc);
 
             if (videoId) {
@@ -46,6 +46,16 @@ export default function MarkdownContent({ content, fallback = 'Start writing to 
       </Markdown>
     </div>
   );
+}
+
+function normalizeImageSrc(src: string) {
+  const writeupUploadPrefix = '/uploads/writeups/';
+
+  if (src.startsWith(writeupUploadPrefix)) {
+    return `/api/writeup-images/${src.slice(writeupUploadPrefix.length)}`;
+  }
+
+  return src;
 }
 
 function getYouTubeVideoId(value: string) {

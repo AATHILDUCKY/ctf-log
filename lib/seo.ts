@@ -28,7 +28,7 @@ export function absoluteUrl(path = '/') {
   return `${siteConfig.url}${path.startsWith('/') ? path : `/${path}`}`;
 }
 
-export function writeupUrl(writeup: Pick<Writeup, 'id' | 'title' | 'slug'>) {
+export function writeupUrl(writeup: Pick<Writeup, 'title' | 'slug'>) {
   return absoluteUrl(writeupHref(writeup));
 }
 

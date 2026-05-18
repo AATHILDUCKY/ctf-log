@@ -16,7 +16,7 @@ export interface Writeup {
   date: string;
   summary: string;
   content: string;
-  difficulty?: 'Easy' | 'Medium' | 'Hard' | 'Insane';
+  difficulty?: 'Very Easy' | 'Easy' | 'Medium' | 'Hard' | 'Insane';
   views?: number;
   wordCount?: number;
   readingTimeMinutes?: number;

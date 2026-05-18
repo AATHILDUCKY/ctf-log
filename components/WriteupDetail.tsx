@@ -55,7 +55,7 @@ export default function WriteupDetail({ writeup, backHref = '/' }: WriteupDetail
   }, [shareOpen]);
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-4xl mx-auto">
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mx-auto max-w-5xl">
       <Link href={backHref} className="inline-flex items-center gap-2 text-dracula-comment hover:text-dracula-pink mb-8 transition-colors group">
         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
         Back to list
@@ -67,13 +67,15 @@ export default function WriteupDetail({ writeup, backHref = '/' }: WriteupDetail
           {writeup.difficulty && (
             <span
               className={`text-sm font-bold uppercase tracking-wider ${
-                writeup.difficulty === 'Easy'
-                  ? 'text-dracula-green'
-                  : writeup.difficulty === 'Medium'
-                    ? 'text-dracula-yellow'
-                    : writeup.difficulty === 'Hard'
-                      ? 'text-dracula-orange'
-                      : 'text-dracula-red'
+                writeup.difficulty === 'Very Easy'
+                  ? 'text-dracula-cyan'
+                  : writeup.difficulty === 'Easy'
+                    ? 'text-dracula-green'
+                    : writeup.difficulty === 'Medium'
+                      ? 'text-dracula-yellow'
+                      : writeup.difficulty === 'Hard'
+                        ? 'text-dracula-orange'
+                        : 'text-dracula-red'
               }`}
             >
               {writeup.difficulty}
