@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@theme {
+  --color-dracula-bg: #282a36;
+  --color-dracula-line: #6272a4;
+  --color-dracula-selection: #44475a;
+  --color-dracula-fg: #f8f8f2;
+  --color-dracula-comment: #6272a4;
+  --color-dracula-red: #ff5555;
+  --color-dracula-orange: #ffb86c;
+  --color-dracula-yellow: #f1fa8c;
+  --color-dracula-green: #50fa7b;
+  --color-dracula-cyan: #8be9fd;
+  --color-dracula-purple: #bd93f9;
+  --color-dracula-pink: #ff79c6;
+
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
+}
+
+@layer base {
+  body {
+    @apply bg-dracula-bg text-dracula-fg font-sans selection:bg-dracula-selection selection:text-dracula-fg;
+  }
+
+  /* Global boxy theme: remove rounded corners app-wide */
+  *,
+  *::before,
+  *::after {
+    border-radius: 0 !important;
+  }
+}
+
+.markdown-body {
+  @apply text-dracula-fg leading-relaxed;
+}
+
+.markdown-body h1 { @apply text-3xl font-bold mb-6 text-dracula-purple; }
+.markdown-body h2 { @apply text-2xl font-semibold mb-4 mt-8 text-dracula-cyan border-b border-dracula-line pb-2; }
+.markdown-body h3 { @apply text-xl font-medium mb-3 mt-6 text-dracula-green; }
+.markdown-body p { @apply mb-4; }
+.markdown-body ul, .markdown-body ol { @apply mb-4 ml-6 list-disc; }
+.markdown-body li { @apply mb-2; }
+.markdown-body a { @apply text-dracula-pink hover:underline; }
+.markdown-body blockquote { @apply border-l-4 border-dracula-purple pl-4 italic my-6 text-dracula-line; }
+.markdown-body code:not(pre code) { @apply bg-dracula-selection px-1.5 py-0.5 rounded text-dracula-orange font-mono text-sm; }
+.markdown-body pre { @apply bg-transparent p-0 my-6; }
+.markdown-body img { @apply max-w-full; }
+.markdown-body table { @apply my-6 w-full overflow-hidden rounded-lg border border-dracula-line/40 text-sm; }
+.markdown-body th { @apply bg-dracula-selection/50 px-3 py-2 text-left text-dracula-cyan; }
+.markdown-body td { @apply border-t border-dracula-line/30 px-3 py-2; }
+.markdown-body input[type="checkbox"] { @apply mr-2 align-middle accent-dracula-green; }
+
+.admin-input {
+  @apply w-full rounded-md border border-dracula-line/50 bg-dracula-selection/20 px-3 py-2 text-sm text-dracula-fg outline-none transition-colors placeholder:text-dracula-line focus:border-dracula-cyan focus:bg-dracula-selection/30;
+}
