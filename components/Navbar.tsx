@@ -23,8 +23,8 @@ export default function Navbar() {
               <Flag className="absolute -bottom-1 -right-1 h-4 w-4 text-dracula-green" />
             </span>
             <span className="text-3xl font-bold leading-none tracking-tight">
-              <span className="text-dracula-fg">Pwn</span>
-              <span className="text-dracula-green">Trends</span>
+              <span className="text-dracula-fg">CTF</span>
+              <span className="text-dracula-green">logs</span>
             </span>
           </Link>
 

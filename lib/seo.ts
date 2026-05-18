@@ -2,11 +2,11 @@ import { Writeup } from '@/types';
 import { writeupHref } from '@/lib/writeupRoutes';
 
 export const siteConfig = {
-  name: 'PwnTrends',
-  url: process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://pwntrends.com',
-  title: 'PwnTrends - CTF Writeups, Challenge Solutions and Security Notes',
+  name: 'CTFlogs',
+  url: process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://ctflogs.com',
+  title: 'CTFlogs - CTF Writeups, Challenge Solutions and Security Notes',
   description:
-    'PwnTrends is a searchable archive of CTF writeups, HackTheBox walkthroughs, TryHackMe notes, CVE research and practical ethical hacking challenge solutions.',
+    'CTFlogs is a searchable archive of CTF writeups, HackTheBox walkthroughs, TryHackMe notes, CVE research and practical ethical hacking challenge solutions.',
   keywords: [
     'CTF writeups',
     'CTF solutions',

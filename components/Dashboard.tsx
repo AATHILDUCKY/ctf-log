@@ -265,7 +265,7 @@ export default function Dashboard({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="flex items-center justify-center gap-2 mb-6">
             <ShieldAlert className="w-6 h-6 text-dracula-green" />
-            <span className="text-lg font-bold text-dracula-fg">PwnTrends</span>
+            <span className="text-lg font-bold text-dracula-fg">CTFlogs</span>
           </div>
           <p className="text-dracula-comment text-sm mb-8">
             Built for security enthusiasts and ethical hackers. <br />

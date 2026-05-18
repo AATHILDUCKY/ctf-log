@@ -1,4 +1,4 @@
-# PwnTrends
+# CTFlogs
 
 Next.js App Router application for publishing and managing security writeups.
 

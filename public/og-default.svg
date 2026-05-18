@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
-  <title id="title">PwnTrends</title>
+  <title id="title">CTFlogs</title>
   <desc id="desc">CTF writeups and security notes.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
@@ -10,6 +10,6 @@
   <rect width="1200" height="630" fill="url(#bg)"/>
   <circle cx="1010" cy="140" r="220" fill="#57C7FF" opacity="0.14"/>
   <circle cx="120" cy="560" r="260" fill="#5EEAD4" opacity="0.12"/>
-  <text x="96" y="290" fill="#E6EDF8" font-family="Arial, sans-serif" font-size="74" font-weight="700">PwnTrends</text>
+  <text x="96" y="290" fill="#E6EDF8" font-family="Arial, sans-serif" font-size="74" font-weight="700">CTFlogs</text>
   <text x="96" y="360" fill="#A9BCD6" font-family="Arial, sans-serif" font-size="36">CTF writeups, challenge solutions, and security notes</text>
 </svg>

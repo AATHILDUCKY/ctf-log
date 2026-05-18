@@ -925,7 +925,7 @@ function buildSeoPreview(draft: WriteupInput) {
     googleTitle: title || 'Untitled writeup',
     openGraphTitle: title || 'Untitled writeup',
     description: summary || 'Add a clear summary so search engines and social previews explain the writeup.',
-    url: slug ? `pwntrends.com/writeups/[id]/${slug}` : 'pwntrends.com/writeups/[id]/missing-slug',
+    url: slug ? `ctflogs.com/writeups/[id]/${slug}` : 'ctflogs.com/writeups/[id]/missing-slug',
     titleLength: title.length,
     descriptionLength: summary.length,
     wordCount,

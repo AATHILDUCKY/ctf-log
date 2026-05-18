@@ -16,14 +16,14 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: 'PwnTrends - CTF Writeup Hub',
+    title: 'CTFlogs - CTF Writeup Hub',
     description: siteConfig.description,
     url: siteConfig.url,
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'PwnTrends - CTF Writeup Hub',
+    title: 'CTFlogs - CTF Writeup Hub',
     description: siteConfig.description,
   },
 };

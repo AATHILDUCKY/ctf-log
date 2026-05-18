@@ -39,7 +39,7 @@ export default function AdminLoginPage() {
     <main className="min-h-screen bg-dracula-bg text-dracula-fg flex items-center justify-center px-4">
       <div className="w-full max-w-md rounded-xl border border-dracula-line/50 bg-dracula-selection/15 p-8">
         <div className="mb-6">
-          <p className="text-xs uppercase tracking-widest font-bold text-dracula-cyan">PwnTrends</p>
+          <p className="text-xs uppercase tracking-widest font-bold text-dracula-cyan">CTFlogs</p>
           <h1 className="mt-2 text-2xl font-bold flex items-center gap-2">
             <Shield className="w-6 h-6 text-dracula-green" />
             Admin Login

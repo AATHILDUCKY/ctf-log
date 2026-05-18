@@ -25,7 +25,7 @@ export default function AdminShell({
   children: ReactNode;
 }) {
   const pathname = usePathname();
-  const [siteName, setSiteName] = useState('PwnTrends');
+  const [siteName, setSiteName] = useState('CTFlogs');
   const [logoUrl, setLogoUrl] = useState<string | undefined>(undefined);
 
   useEffect(() => {
@@ -35,7 +35,7 @@ export default function AdminShell({
       .then((response) => (response.ok ? response.json() : null))
       .then((payload) => {
         if (!payload?.settings) return;
-        setSiteName(payload.settings.siteName || 'PwnTrends');
+        setSiteName(payload.settings.siteName || 'CTFlogs');
         setLogoUrl(payload.settings.logoUrl || undefined);
       })
       .catch(() => {

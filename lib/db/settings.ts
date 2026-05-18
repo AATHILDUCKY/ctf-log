@@ -15,7 +15,7 @@ const DEFAULT_CHALLENGE_TRACKS = ['CTF', 'HackTheBox', 'TryHackMe', 'VulnHub', '
 db.exec(`
   CREATE TABLE IF NOT EXISTS site_settings (
     id INTEGER PRIMARY KEY CHECK (id = 1),
-    site_name TEXT NOT NULL DEFAULT 'PwnTrends',
+    site_name TEXT NOT NULL DEFAULT 'CTFlogs',
     challenge_tracks TEXT NOT NULL DEFAULT '[]',
     logo_url TEXT,
     logo_size INTEGER,
@@ -32,11 +32,11 @@ const existing = db.prepare('SELECT id FROM site_settings WHERE id = 1').get() a
 if (!existing) {
   db.prepare(`
     INSERT INTO site_settings (id, site_name, challenge_tracks, logo_url, logo_size, updated_at)
-    VALUES (1, 'PwnTrends', ?, NULL, NULL, ?)
+    VALUES (1, 'CTFlogs', ?, NULL, NULL, ?)
   `).run(JSON.stringify(DEFAULT_CHALLENGE_TRACKS), new Date().toISOString());
 }
 
-db.prepare("UPDATE site_settings SET site_name = 'PwnTrends' WHERE id = 1 AND site_name = 'CTFlogs'").run();
+db.prepare("UPDATE site_settings SET site_name = 'CTFlogs' WHERE id = 1 AND site_name = 'PwnTrends'").run();
 
 function toSettings(row: SiteSettingsRow): SiteSettings {
   const parsedTracks = parseChallengeTracks(row.challenge_tracks);
