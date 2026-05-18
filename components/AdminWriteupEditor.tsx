@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, type MouseEvent as ReactMouseEvent, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, type KeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -25,6 +25,7 @@ import {
   ShieldCheck,
   Table,
   TriangleAlert,
+  X,
   Youtube,
 } from 'lucide-react';
 import MarkdownPreview from '@/components/MarkdownPreview';
@@ -162,7 +163,7 @@ const flagsTemplate = `## Flags / Proof
 export default function AdminWriteupEditor({ initialWriteup, initialDraft }: { initialWriteup?: Writeup | null; initialDraft: WriteupInput }) {
   const router = useRouter();
   const [draft, setDraft] = useState<WriteupInput>(initialDraft);
-  const [tagText, setTagText] = useState(initialDraft.tags.join(', '));
+  const [tagInput, setTagInput] = useState('');
   const [settingsCategories, setSettingsCategories] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -227,23 +228,64 @@ export default function AdminWriteupEditor({ initialWriteup, initialDraft }: { i
     updateDraft('slug', normalized);
   }
 
-  function updateTags(value: string) {
-    setTagText(value);
-    updateDraft(
-      'tags',
-      Array.from(new Set(value.split(',').map((tag) => tag.trim()).filter(Boolean))),
-    );
+  function setTags(tags: string[]) {
+    updateDraft('tags', normalizeTagList(tags));
+  }
+
+  function addTagsFromText(value: string) {
+    const nextTags = normalizeTagList([...draft.tags, ...value.split(',')]);
+    updateDraft('tags', nextTags);
+    setTagInput('');
+  }
+
+  function updateTagInput(value: string) {
+    if (value.includes(',')) {
+      const parts = value.split(',');
+      const completed = parts.slice(0, -1);
+      const remainder = parts[parts.length - 1] ?? '';
+
+      if (completed.some((tag) => tag.trim())) {
+        updateDraft('tags', normalizeTagList([...draft.tags, ...completed]));
+      }
+
+      setTagInput(remainder);
+      return;
+    }
+
+    setTagInput(value);
+  }
+
+  function handleTagKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if ((event.key === 'Enter' || event.key === 'Tab') && tagInput.trim()) {
+      event.preventDefault();
+      addTagsFromText(tagInput);
+      return;
+    }
+
+    if (event.key === 'Backspace' && !tagInput && draft.tags.length > 0) {
+      setTags(draft.tags.slice(0, -1));
+    }
+  }
+
+  function removeTag(tagToRemove: string) {
+    setTags(draft.tags.filter((tag) => tag !== tagToRemove));
   }
 
   async function saveWriteup(event: FormEvent) {
     event.preventDefault();
     setIsSaving(true);
     setMessage('');
+    const payloadDraft = {
+      ...draft,
+      tags: normalizeTagList([...draft.tags, tagInput]),
+    };
+    setDraft(payloadDraft);
+    setTagInput('');
 
     const response = await fetch(initialWriteup ? `/api/writeups/${initialWriteup.id}` : '/api/writeups', {
       method: initialWriteup ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(draft),
+      body: JSON.stringify(payloadDraft),
     });
 
     const payload = await response.json();
@@ -498,13 +540,31 @@ export default function AdminWriteupEditor({ initialWriteup, initialDraft }: { i
           </div>
 
           <Field label="Tags">
-            <input
-              value={tagText}
-              onChange={(event) => updateTags(event.target.value)}
-              onBlur={() => setTagText(draft.tags.join(', '))}
-              className="admin-input"
-              placeholder="web, enumeration, rce"
-            />
+            <div className="flex min-h-10 w-full flex-wrap items-center gap-2 border border-dracula-line/50 bg-dracula-selection/20 px-2 py-1.5 text-sm text-dracula-fg transition-colors focus-within:border-dracula-cyan focus-within:bg-dracula-selection/30">
+              {draft.tags.map((tag) => (
+                <span key={tag} className="inline-flex h-7 items-center gap-1 border border-dracula-line/40 bg-dracula-bg/60 px-2 text-xs font-bold uppercase tracking-wider text-dracula-cyan">
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => removeTag(tag)}
+                    className="inline-flex h-4 w-4 items-center justify-center text-dracula-comment hover:text-dracula-red"
+                    title={`Remove ${tag}`}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              ))}
+              <input
+                value={tagInput}
+                onChange={(event) => updateTagInput(event.target.value)}
+                onKeyDown={handleTagKeyDown}
+                onBlur={() => {
+                  if (tagInput.trim()) addTagsFromText(tagInput);
+                }}
+                className="min-w-32 flex-1 bg-transparent px-1 py-1 outline-none placeholder:text-dracula-line"
+                placeholder={draft.tags.length > 0 ? 'Add tag,' : 'web, enumeration, rce'}
+              />
+            </div>
           </Field>
 
           <div className="overflow-visible rounded-lg border border-dracula-line/50 bg-dracula-selection/10">
@@ -651,6 +711,17 @@ function toDraft(writeup: Writeup): WriteupInput {
     difficulty: writeup.difficulty,
     status: writeup.status,
   };
+}
+
+function normalizeTagList(tags: string[]) {
+  return Array.from(
+    new Set(
+      tags
+        .flatMap((tag) => tag.split(','))
+        .map((tag) => tag.trim().replace(/^#/, ''))
+        .filter(Boolean),
+    ),
+  );
 }
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
