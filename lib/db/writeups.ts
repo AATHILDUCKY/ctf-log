@@ -95,6 +95,7 @@ if (count.count === 0) {
 db.exec("UPDATE writeups SET slug = lower(replace(trim(title), ' ', '-')) WHERE slug IS NULL OR trim(slug) = '';");
 db.exec('UPDATE writeups SET word_count = 0 WHERE word_count IS NULL;');
 db.exec('UPDATE writeups SET reading_time_minutes = 1 WHERE reading_time_minutes IS NULL OR reading_time_minutes < 1;');
+normalizeExistingWriteupSlugs();
 
 const writeupCount = db.prepare('SELECT COUNT(*) AS count FROM writeups').get() as { count: number };
 const ftsCount = db.prepare('SELECT COUNT(*) AS count FROM writeups_fts').get() as { count: number };
@@ -187,6 +188,23 @@ function uniqueSlug(baseSlug: string, currentId?: string) {
     slug = `${fallbackSlug}-${suffix}`;
     suffix += 1;
   }
+}
+
+function normalizeExistingWriteupSlugs() {
+  const rows = db.prepare('SELECT id, slug, title FROM writeups').all() as Pick<WriteupRow, 'id' | 'slug' | 'title'>[];
+  const update = db.prepare('UPDATE writeups SET slug = ? WHERE id = ?');
+
+  const updateMany = db.transaction((writeups: Pick<WriteupRow, 'id' | 'slug' | 'title'>[]) => {
+    for (const writeup of writeups) {
+      const normalizedSlug = slugifyWriteupTitle(writeup.slug?.trim() || writeup.title) || slugifyWriteupTitle(writeup.title) || 'writeup';
+
+      if (normalizedSlug && normalizedSlug !== writeup.slug) {
+        update.run(uniqueSlug(normalizedSlug, writeup.id), writeup.id);
+      }
+    }
+  });
+
+  updateMany(rows);
 }
 
 export function listWriteups(options: { includePrivate?: boolean } = {}) {

@@ -4,14 +4,14 @@ import { getWriteup } from '@/lib/db/writeups';
 import { siteConfig, writeupUrl } from '@/lib/seo';
 
 type PageProps = {
-  params: Promise<{ id: string; slug: string }>;
+  params: Promise<{ slug: string; legacySlug: string }>;
 };
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { id } = await params;
-  const writeup = getWriteup(id);
+  const { slug } = await params;
+  const writeup = getWriteup(slug);
 
   if (!writeup) {
     return {
@@ -37,8 +37,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function LegacyWriteupPage({ params }: PageProps) {
-  const { id } = await params;
-  const writeup = getWriteup(id);
+  const { slug } = await params;
+  const writeup = getWriteup(slug);
 
   if (!writeup) {
     notFound();
