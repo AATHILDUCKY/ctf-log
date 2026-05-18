@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft, Calendar, Clock3, Eye, FileText, Share2, Tag, User } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock3, Eye, Share2, Tag, User } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Writeup } from '@/types';
 import MarkdownContent from '@/components/MarkdownContent';
@@ -95,26 +95,12 @@ export default function WriteupDetail({ writeup, backHref = '/' }: WriteupDetail
             <span className="text-sm">{writeup.date}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Tag className="w-4 h-4 text-dracula-green" />
-            <div className="flex gap-2">
-              {writeup.tags.map((tag) => (
-                <span key={tag} className="text-xs uppercase tracking-wider">
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
             <Eye className="w-4 h-4 text-dracula-cyan" />
             <span className="text-sm">{writeup.views ?? 0} views</span>
           </div>
           <div className="flex items-center gap-2">
             <Clock3 className="w-4 h-4 text-dracula-yellow" />
             <span className="text-sm">{writeup.readingTimeMinutes ?? 1} min read</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <FileText className="w-4 h-4 text-dracula-line" />
-            <span className="text-sm">{writeup.wordCount ?? 0} words</span>
           </div>
           <div ref={shareRef} className="relative ml-auto">
             <button
@@ -159,6 +145,22 @@ export default function WriteupDetail({ writeup, backHref = '/' }: WriteupDetail
       </header>
 
       <MarkdownContent content={writeup.content} fallback="" />
+
+      {writeup.tags.length > 0 && (
+        <section className="mt-12 border-t border-dracula-line/30 pt-6">
+          <div className="mb-3 flex items-center gap-2 text-dracula-comment">
+            <Tag className="h-4 w-4 text-dracula-green" />
+            <h2 className="text-xs font-bold uppercase tracking-widest">Tags</h2>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {writeup.tags.map((tag) => (
+              <span key={tag} className="border border-dracula-line/40 bg-dracula-selection/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-dracula-cyan">
+                #{tag}
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
     </motion.div>
   );
 }
