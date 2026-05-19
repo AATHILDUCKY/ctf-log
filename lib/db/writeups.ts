@@ -24,6 +24,17 @@ type WriteupRow = {
   updated_at: string;
 };
 
+type SearchTerm = {
+  value: string;
+  variants: string[];
+};
+
+type SearchQuery = {
+  matchQuery: string;
+  terms: SearchTerm[];
+  exactPhrase: string;
+};
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS writeups (
     id TEXT PRIMARY KEY,
@@ -231,7 +242,7 @@ export function queryPublicWriteups({
   const limit = Math.min(Math.max(safePageSize, 1), 50);
   const offset = (safePage - 1) * limit;
   const normalizedCategory = category && category !== 'All' ? category : null;
-  const matchQuery = toFtsQuery(query);
+  const searchQuery = toSearchQuery(query);
 
   const baseSelect = `
     SELECT id, slug, title, category, tags, author, date, summary, difficulty, views, word_count, reading_time_minutes, status, created_at, updated_at
@@ -249,24 +260,35 @@ export function queryPublicWriteups({
     ${normalizedCategory ? 'AND category = @category' : ''}
   `;
 
-  if (!matchQuery) {
+  if (!searchQuery.matchQuery) {
     const params = { category: normalizedCategory, limit, offset };
     const rows = db.prepare(baseSelect).all(params) as Omit<WriteupRow, 'content'>[];
     const total = db.prepare(baseCount).get(params) as { count: number };
     return { writeups: rows.map(toWriteupListItem), total: total.count, page: safePage, pageSize: limit };
   }
 
-  const searchParams = { query: matchQuery, category: normalizedCategory, limit, offset };
+  const scoring = buildSearchScoring(searchQuery);
+  const searchParams: Record<string, string | number | null> = {
+    query: searchQuery.matchQuery,
+    category: normalizedCategory,
+    limit,
+    offset,
+    exactPhrase: `%${searchQuery.exactPhrase}%`,
+    ...scoring.params,
+  };
   const categoryFilter = normalizedCategory ? 'AND w.category = @category' : '';
   const rows = db.prepare(`
     SELECT w.id, w.slug, w.title, w.category, w.tags, w.author, w.date, w.summary, w.difficulty, w.views, w.word_count, w.reading_time_minutes, w.status, w.created_at, w.updated_at,
-      bm25(writeups_fts, 9, 6, 5, 3, 1) AS rank
+      bm25(writeups_fts, 9, 6, 5, 3, 1) AS rank,
+      ${scoring.matchedTermsSql} AS matched_terms,
+      ${scoring.fieldScoreSql} AS field_score,
+      CASE WHEN lower(w.title) LIKE @exactPhrase THEN 1 ELSE 0 END AS title_phrase_score
     FROM writeups_fts
     JOIN writeups w ON w.id = writeups_fts.id
     WHERE writeups_fts MATCH @query
       AND w.status = 'public'
       ${categoryFilter}
-    ORDER BY rank ASC, w.date DESC, w.updated_at DESC
+    ORDER BY matched_terms DESC, title_phrase_score DESC, field_score DESC, rank ASC, w.date DESC, w.updated_at DESC
     LIMIT @limit OFFSET @offset
   `).all(searchParams) as (Omit<WriteupRow, 'content'> & { rank: number })[];
 
@@ -459,15 +481,71 @@ function upsertWriteupSearchIndex(writeup: Writeup) {
   `).run(writeup.id, writeup.title, writeup.category, writeup.tags.join(' '), writeup.summary, writeup.content);
 }
 
-function toFtsQuery(query: string) {
+function toSearchQuery(query: string): SearchQuery {
   const terms = query
     .toLowerCase()
     .replace(/[^\w\s".+#-]/g, ' ')
     .replace(/"/g, ' ')
     .split(/\s+/)
     .map((term) => term.trim().replace(/[^a-z0-9_]/g, ''))
-    .filter((term) => term.length > 1)
-    .slice(0, 8);
+    .filter((term) => term.length > 0)
+    .filter((term, index, list) => list.indexOf(term) === index)
+    .slice(0, 8)
+    .map((term) => ({
+      value: term,
+      variants: getSearchTermVariants(term),
+    }));
 
-  return terms.length > 0 ? terms.map((term) => `${term}*`).join(' OR ') : '';
+  const matchQuery = terms
+    .map((term) => (term.variants.length > 1 ? `(${term.variants.map(toFtsPrefixTerm).join(' OR ')})` : toFtsPrefixTerm(term.value)))
+    .join(' OR ');
+
+  return {
+    matchQuery,
+    terms,
+    exactPhrase: terms.map((term) => term.value).join(' '),
+  };
+}
+
+function getSearchTermVariants(term: string) {
+  const variants = [term];
+  if (term.length > 3 && term.endsWith('s')) variants.push(term.slice(0, -1));
+
+  return variants.filter((variant, index, list) => list.indexOf(variant) === index);
+}
+
+function toFtsPrefixTerm(term: string) {
+  return `${term}*`;
+}
+
+function buildSearchScoring(searchQuery: SearchQuery) {
+  const params: Record<string, string> = {};
+
+  const variantCondition = (column: string, termIndex: number) =>
+    searchQuery.terms[termIndex].variants
+      .map((variant, variantIndex) => {
+        const paramName = `term${termIndex}_${variantIndex}`;
+        params[paramName] = `%${variant}%`;
+        return `lower(${column}) LIKE @${paramName}`;
+      })
+      .join(' OR ');
+
+  const termCondition = (termIndex: number, columns: string[]) => columns.map((column) => `(${variantCondition(column, termIndex)})`).join(' OR ');
+
+  const matchedTermsSql = searchQuery.terms
+    .map((_, index) => `CASE WHEN ${termCondition(index, ['w.title', 'w.category', 'w.tags', 'w.summary', 'w.content'])} THEN 1 ELSE 0 END`)
+    .join(' + ');
+
+  const fieldScoreSql = searchQuery.terms
+    .map(
+      (_, index) => `
+        CASE WHEN ${termCondition(index, ['w.title'])} THEN 18 ELSE 0 END +
+        CASE WHEN ${termCondition(index, ['w.category', 'w.tags'])} THEN 12 ELSE 0 END +
+        CASE WHEN ${termCondition(index, ['w.summary'])} THEN 4 ELSE 0 END +
+        CASE WHEN ${termCondition(index, ['w.content'])} THEN 1 ELSE 0 END
+      `,
+    )
+    .join(' + ');
+
+  return { matchedTermsSql, fieldScoreSql, params };
 }
