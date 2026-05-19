@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import GlobalPopupAds from '@/components/GlobalPopupAds';
-import { absoluteUrl, siteConfig } from '@/lib/seo';
+import { absoluteUrl, siteConfig, socialLinks } from '@/lib/seo';
 import './globals.css';
 
 const inter = Inter({
@@ -25,9 +25,9 @@ export const metadata: Metadata = {
   },
   description: siteConfig.description,
   keywords: siteConfig.keywords,
-  authors: [{ name: siteConfig.name, url: siteConfig.url }],
-  creator: siteConfig.name,
-  publisher: siteConfig.name,
+  authors: [{ name: siteConfig.authorName, url: siteConfig.url }],
+  creator: siteConfig.authorName,
+  publisher: siteConfig.authorName,
   alternates: {
     canonical: '/',
   },
@@ -52,6 +52,8 @@ export const metadata: Metadata = {
     title: siteConfig.title,
     description: siteConfig.description,
     images: [absoluteUrl('/og-default.svg')],
+    creator: '@AathilDucky',
+    site: '@AathilDucky',
   },
   robots: {
     index: true,
@@ -87,15 +89,39 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               '@context': 'https://schema.org',
-              '@type': 'WebSite',
-              name: siteConfig.name,
-              url: siteConfig.url,
-              description: siteConfig.description,
-              potentialAction: {
-                '@type': 'SearchAction',
-                target: absoluteUrl('/?q={search_term_string}'),
-                'query-input': 'required name=search_term_string',
-              },
+              '@graph': [
+                {
+                  '@type': 'WebSite',
+                  name: siteConfig.name,
+                  url: siteConfig.url,
+                  description: siteConfig.description,
+                  publisher: {
+                    '@type': 'Person',
+                    name: siteConfig.authorName,
+                    url: siteConfig.url,
+                  },
+                  sameAs: socialLinks.map((link) => link.href),
+                  potentialAction: {
+                    '@type': 'SearchAction',
+                    target: absoluteUrl('/?q={search_term_string}'),
+                    'query-input': 'required name=search_term_string',
+                  },
+                },
+                {
+                  '@type': 'Person',
+                  name: siteConfig.authorName,
+                  url: siteConfig.url,
+                  sameAs: socialLinks.map((link) => link.href),
+                  knowsAbout: [
+                    'CTF writeups',
+                    'ethical hacking',
+                    'cybersecurity',
+                    'HackTheBox',
+                    'TryHackMe',
+                    'CVE research',
+                  ],
+                },
+              ],
             }),
           }}
         />

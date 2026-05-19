@@ -2,11 +2,25 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { ChevronLeft, ChevronRight, Filter, Search, ShieldAlert, Terminal } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  Filter,
+  Globe2,
+  Instagram,
+  Linkedin,
+  Search,
+  ShieldAlert,
+  Terminal,
+  Twitter,
+  Youtube,
+} from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import WriteupCard from '@/components/WriteupCard';
 import AdSlot from '@/components/AdSlot';
 import { Ad, WriteupListItem } from '@/types';
+import { siteConfig, socialLinks } from '@/lib/seo';
 
 const POSTS_PER_PAGE = 10;
 
@@ -40,6 +54,13 @@ export default function Dashboard({
   const categories: (string | 'All')[] = ['All', ...(challengeTracks.length > 0 ? challengeTracks : ['CTF', 'HackTheBox', 'TryHackMe', 'VulnHub', 'Bug Bounty', 'CVE'])];
   const sidebarAds = ads.filter((ad) => ad.placement === 'home-sidebar');
   const feedAds = ads.filter((ad) => ad.placement === 'home-feed').slice(0, 1);
+  const socialIconMap = {
+    Portfolio: Globe2,
+    YouTube: Youtube,
+    LinkedIn: Linkedin,
+    X: Twitter,
+    Instagram,
+  };
 
   const totalPages = Math.max(1, Math.ceil(totalResults / pageSize));
   const pageStart = (currentPage - 1) * pageSize;
@@ -170,6 +191,35 @@ export default function Dashboard({
                   </div>
                 </section>
 
+                <section className="bg-dracula-selection/20 p-6 rounded-2xl border border-dracula-line/50">
+                  <h3 className="text-sm font-bold text-dracula-comment uppercase tracking-widest mb-4">Connect with Aathil</h3>
+                  <div className="space-y-2">
+                    {socialLinks.map((link) => {
+                      const Icon = socialIconMap[link.label as keyof typeof socialIconMap] ?? ExternalLink;
+
+                      return (
+                        <a
+                          key={link.href}
+                          href={link.href}
+                          target="_blank"
+                          rel="noopener noreferrer me"
+                          aria-label={`Visit ${siteConfig.authorName} on ${link.label}`}
+                          className="group flex items-center justify-between gap-3 border border-dracula-line/30 bg-dracula-bg/30 px-3 py-2 text-sm text-dracula-comment transition-colors hover:border-dracula-purple hover:text-dracula-fg"
+                        >
+                          <span className="inline-flex min-w-0 items-center gap-3">
+                            <Icon className="h-4 w-4 shrink-0 text-dracula-purple transition-colors group-hover:text-dracula-green" />
+                            <span className="min-w-0">
+                              <span className="block font-bold text-dracula-fg">{link.label}</span>
+                              <span className="block truncate text-xs font-mono">{link.username}</span>
+                            </span>
+                          </span>
+                          <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-60" />
+                        </a>
+                      );
+                    })}
+                  </div>
+                </section>
+
                 <AdSlot ads={sidebarAds} />
               </aside>
 
@@ -268,13 +318,27 @@ export default function Dashboard({
             <span className="text-lg font-bold text-dracula-fg">CTFlogs</span>
           </div>
           <p className="text-dracula-comment text-sm mb-8">
-            Built for security enthusiasts and ethical hackers. <br />
+            Built by Aathil Ducky for security enthusiasts and ethical hackers. <br />
             Documenting the world of vulnerabilities, one writeup at a time.
           </p>
-          <div className="flex justify-center gap-8 text-dracula-comment text-xs font-mono uppercase tracking-widest">
-            <a href="#" className="hover:text-dracula-purple transition-colors">Twitter</a>
-            <a href="#" className="hover:text-dracula-purple transition-colors">GitHub</a>
-            <a href="#" className="hover:text-dracula-purple transition-colors">RSS</a>
+          <div className="flex flex-wrap justify-center gap-3 text-dracula-comment">
+            {socialLinks.map((link) => {
+              const Icon = socialIconMap[link.label as keyof typeof socialIconMap] ?? ExternalLink;
+
+              return (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer me"
+                  title={`${siteConfig.authorName} on ${link.label}`}
+                  aria-label={`Visit ${siteConfig.authorName} on ${link.label}`}
+                  className="inline-flex h-10 w-10 items-center justify-center border border-dracula-line/50 transition-colors hover:border-dracula-purple hover:bg-dracula-selection hover:text-dracula-fg"
+                >
+                  <Icon className="h-4 w-4" />
+                </a>
+              );
+            })}
           </div>
         </div>
       </footer>

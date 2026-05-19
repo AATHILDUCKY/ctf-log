@@ -3,11 +3,15 @@ import { writeupHref } from '@/lib/writeupRoutes';
 
 export const siteConfig = {
   name: 'CTFlogs',
-  url: process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://ctflogs.com',
+  authorName: 'Aathil Ducky',
+  url: process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://www.aathilducky.com',
   title: 'CTFlogs - CTF Writeups, Challenge Solutions and Security Notes',
   description:
-    'CTFlogs is a searchable archive of CTF writeups, HackTheBox walkthroughs, TryHackMe notes, CVE research and practical ethical hacking challenge solutions.',
+    'CTFlogs by Aathil Ducky is a searchable archive of CTF writeups, HackTheBox walkthroughs, TryHackMe notes, CVE research and practical ethical hacking challenge solutions.',
   keywords: [
+    'Aathil Ducky',
+    'AathilDucky',
+    'Aathil Ducky portfolio',
     'CTF writeups',
     'CTF solutions',
     'CTF challenge walkthroughs',
@@ -23,6 +27,34 @@ export const siteConfig = {
     'CVE analysis',
   ],
 };
+
+export const socialLinks = [
+  {
+    label: 'Portfolio',
+    href: 'https://www.aathilducky.com',
+    username: 'aathilducky.com',
+  },
+  {
+    label: 'YouTube',
+    href: 'https://www.youtube.com/@aathilducky',
+    username: '@aathilducky',
+  },
+  {
+    label: 'LinkedIn',
+    href: 'https://www.linkedin.com/in/aathil-ducky',
+    username: 'Aathil Ducky',
+  },
+  {
+    label: 'X',
+    href: 'https://twitter.com/AathilDucky',
+    username: '@AathilDucky',
+  },
+  {
+    label: 'Instagram',
+    href: 'https://instagram.com/aathilducky',
+    username: '@aathilducky',
+  },
+];
 
 export function absoluteUrl(path = '/') {
   return `${siteConfig.url}${path.startsWith('/') ? path : `/${path}`}`;
