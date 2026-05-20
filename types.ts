@@ -59,3 +59,26 @@ export interface SiteSettings {
   logoSize?: number;
   updatedAt: string;
 }
+
+export type SitePageSlug = 'about' | 'contact' | 'privacy-policy' | 'terms-and-conditions';
+
+export interface SitePage {
+  slug: SitePageSlug;
+  title: string;
+  summary: string;
+  content: string;
+  seoTitle: string;
+  seoDescription: string;
+  updatedAt: string;
+}
+
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  status: 'new' | 'read' | 'archived';
+  createdAt: string;
+  updatedAt: string;
+}

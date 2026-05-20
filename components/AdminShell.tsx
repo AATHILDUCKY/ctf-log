@@ -3,11 +3,13 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
-import { BarChart3, FileText, LayoutDashboard, LogOut, Megaphone, Settings } from 'lucide-react';
+import { BarChart3, FileText, Inbox, LayoutDashboard, LogOut, Megaphone, PanelsTopLeft, Settings } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const navItems = [
   { href: '/admin/writeups', label: 'Writeups', display: '/admin/writeups', icon: FileText },
+  { href: '/admin/pages', label: 'Pages', display: '/admin/pages', icon: PanelsTopLeft },
+  { href: '/admin/messages', label: 'Messages', display: '/admin/messages', icon: Inbox },
   { href: '/admin/adds', label: 'Adds', display: '/admin/adds', icon: Megaphone },
   { href: '/admin/analytics', label: 'Analytics', display: '/admin/analytics', icon: BarChart3 },
   { href: '/admin/setting', label: 'Setting', display: '/admin/setting', icon: Settings },

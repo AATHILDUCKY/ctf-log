@@ -19,6 +19,7 @@ import {
 import Navbar from '@/components/Navbar';
 import WriteupCard from '@/components/WriteupCard';
 import AdSlot from '@/components/AdSlot';
+import SiteFooter from '@/components/SiteFooter';
 import { Ad, WriteupListItem } from '@/types';
 import { siteConfig, socialLinks } from '@/lib/seo';
 
@@ -311,37 +312,7 @@ export default function Dashboard({
         </motion.div>
       </main>
 
-      <footer className="border-t border-dracula-line mt-20 py-12 bg-dracula-selection/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <ShieldAlert className="w-6 h-6 text-dracula-green" />
-            <span className="text-lg font-bold text-dracula-fg">CTFlogs</span>
-          </div>
-          <p className="text-dracula-comment text-sm mb-8">
-            Built by Aathil Ducky for security enthusiasts and ethical hackers. <br />
-            Documenting the world of vulnerabilities, one writeup at a time.
-          </p>
-          <div className="flex flex-wrap justify-center gap-3 text-dracula-comment">
-            {socialLinks.map((link) => {
-              const Icon = socialIconMap[link.label as keyof typeof socialIconMap] ?? ExternalLink;
-
-              return (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  target="_blank"
-                  rel="noopener noreferrer me"
-                  title={`${siteConfig.authorName} on ${link.label}`}
-                  aria-label={`Visit ${siteConfig.authorName} on ${link.label}`}
-                  className="inline-flex h-10 w-10 items-center justify-center border border-dracula-line/50 transition-colors hover:border-dracula-purple hover:bg-dracula-selection hover:text-dracula-fg"
-                >
-                  <Icon className="h-4 w-4" />
-                </a>
-              );
-            })}
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

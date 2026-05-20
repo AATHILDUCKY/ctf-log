@@ -1,17 +1,39 @@
 'use client';
 
 import Link from 'next/link';
-import { FileCode2, Flag, Menu, UserCog, X } from 'lucide-react';
+import { FileCode2, Flag, Home, Info, Mail, Menu, ShieldCheck, UserCog, X, type LucideIcon } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 
-const navItems = [
+const navItems: Array<{ href: string; label: string; icon: LucideIcon; iconOnly?: boolean }> = [
+  { href: '/', label: 'Writeups', icon: Home },
+  { href: '/about', label: 'About', icon: Info },
+  { href: '/contact', label: 'Contact', icon: Mail },
+  { href: '/privacy-policy', label: 'Privacy', icon: ShieldCheck },
   { href: '/admin', label: 'Admin', icon: UserCog, iconOnly: true },
 ];
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [siteName, setSiteName] = useState('CTFlogs');
+  const [logoUrl, setLogoUrl] = useState<string | undefined>(undefined);
   const pathname = usePathname();
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetch('/api/settings', { signal: controller.signal, cache: 'no-store' })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload) => {
+        if (!payload?.settings) return;
+        setSiteName(payload.settings.siteName || 'CTFlogs');
+        setLogoUrl(payload.settings.logoUrl || undefined);
+      })
+      .catch(() => {
+        // Keep defaults if public settings cannot be reached.
+      });
+
+    return () => controller.abort();
+  }, []);
 
   return (
     <nav className="sticky top-0 z-50 bg-dracula-bg/80 backdrop-blur-md border-b border-dracula-line">
@@ -19,24 +41,24 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="inline-flex items-center gap-2">
             <span className="relative inline-flex h-10 w-10 items-center justify-center rounded-md border border-dracula-line/60 bg-dracula-selection/25">
-              <FileCode2 className="h-6 w-6 text-dracula-fg" />
-              <Flag className="absolute -bottom-1 -right-1 h-4 w-4 text-dracula-green" />
+              {logoUrl ? <img src={logoUrl} alt={`${siteName} logo`} className="h-7 w-7 object-contain" /> : <FileCode2 className="h-6 w-6 text-dracula-fg" />}
+              {!logoUrl && <Flag className="absolute -bottom-1 -right-1 h-4 w-4 text-dracula-green" />}
             </span>
             <span className="text-3xl font-bold leading-none tracking-tight">
-              <span className="text-dracula-fg">CTF</span>
-              <span className="text-dracula-green">logs</span>
+              <span className="text-dracula-fg">{siteName.slice(0, 3)}</span>
+              <span className="text-dracula-green">{siteName.slice(3) || 'logs'}</span>
             </span>
           </Link>
 
           <div className="hidden md:block">
-            <div className="flex items-baseline space-x-4">
+            <div className="flex items-center gap-2">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
 
                 return (
                   <NavLink key={item.href} href={item.href} label={item.label} active={active} icon={Icon ? <Icon className="h-4 w-4" /> : undefined}>
-                    {item.iconOnly ? <span className="sr-only">{item.label}</span> : item.label}
+                    {item.iconOnly ? <span className="sr-only">{item.label}</span> : <span>{item.label}</span>}
                   </NavLink>
                 );
               })}
@@ -69,7 +91,7 @@ export default function Navbar() {
                   icon={Icon ? <Icon className="h-4 w-4" /> : undefined}
                   onClick={() => setIsOpen(false)}
                 >
-                  {item.iconOnly ? <span className="sr-only">{item.label}</span> : item.label}
+                  {item.iconOnly ? <span>{item.label}</span> : item.label}
                 </MobileNavLink>
               );
             })}
