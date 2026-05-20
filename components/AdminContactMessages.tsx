@@ -1,14 +1,19 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { Archive, MailOpen, Search, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Archive, ChevronLeft, ChevronRight, MailOpen, Search, Trash2 } from 'lucide-react';
 import type { ContactMessage } from '@/types';
+
+const PAGE_SIZE = 10;
 
 export default function AdminContactMessages({ initialMessages }: { initialMessages: ContactMessage[] }) {
   const [messages, setMessages] = useState(initialMessages);
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<ContactMessage['status'] | 'all'>('all');
   const [notice, setNotice] = useState('');
+  const [page, setPage] = useState(0);
+
+  useEffect(() => { setPage(0); }, [query, statusFilter]);
 
   const filteredMessages = useMemo(() => {
     const normalized = query.toLowerCase();
@@ -18,6 +23,9 @@ export default function AdminContactMessages({ initialMessages }: { initialMessa
       return matchesStatus && matchesQuery;
     });
   }, [messages, query, statusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredMessages.length / PAGE_SIZE));
+  const pagedMessages = filteredMessages.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   async function setStatus(id: string, status: ContactMessage['status']) {
     const response = await fetch(`/api/contact-messages/${id}`, {
@@ -84,7 +92,7 @@ export default function AdminContactMessages({ initialMessages }: { initialMessa
               </tr>
             </thead>
             <tbody>
-              {filteredMessages.map((message) => (
+              {pagedMessages.map((message) => (
                 <tr key={message.id} className="border-b border-dracula-line/20 align-top last:border-0 hover:bg-dracula-selection/20">
                   <td className="max-w-xl px-4 py-4">
                     <p className="font-bold text-dracula-fg">{message.subject}</p>
@@ -128,6 +136,35 @@ export default function AdminContactMessages({ initialMessages }: { initialMessa
           </table>
         </div>
       </section>
+
+      {filteredMessages.length > PAGE_SIZE && (
+        <div className="flex items-center justify-between border border-dracula-line/40 bg-dracula-selection/10 px-4 py-3">
+          <span className="text-xs text-dracula-comment">
+            {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filteredMessages.length)} of {filteredMessages.length} messages
+          </span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setPage((p) => p - 1)}
+              disabled={page === 0}
+              className="flex h-8 w-8 items-center justify-center border border-dracula-line/40 text-dracula-comment transition-colors hover:bg-dracula-selection/40 hover:text-dracula-fg disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <span className="flex h-8 items-center px-3 text-xs text-dracula-comment">
+              {page + 1} / {totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() => setPage((p) => p + 1)}
+              disabled={page >= totalPages - 1}
+              className="flex h-8 w-8 items-center justify-center border border-dracula-line/40 text-dracula-comment transition-colors hover:bg-dracula-selection/40 hover:text-dracula-fg disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
