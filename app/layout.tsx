@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { Inter, JetBrains_Mono } from 'next/font/google';
+import Script from 'next/script';
 import GlobalPopupAds from '@/components/GlobalPopupAds';
 import { absoluteUrl, siteConfig, socialLinks } from '@/lib/seo';
 import './globals.css';
@@ -14,6 +15,8 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
   variable: '--font-jetbrains-mono',
 });
+
+const googleAnalyticsId = 'G-EK8XZ5LDR9';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -84,6 +87,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body suppressHydrationWarning className={`${inter.variable} ${jetbrainsMono.variable}`}>
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){window.dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${googleAnalyticsId}');
+          `}
+        </Script>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
