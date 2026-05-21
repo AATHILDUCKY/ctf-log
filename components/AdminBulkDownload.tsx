@@ -2,9 +2,9 @@
 
 import { useMemo, useState } from 'react';
 import { Download, FileJson, FileText, Minus, Search, Square, SquareCheck } from 'lucide-react';
-import { Writeup } from '@/types';
+import { WriteupListItem } from '@/types';
 
-export default function AdminBulkDownload({ initialWriteups }: { initialWriteups: Writeup[] }) {
+export default function AdminBulkDownload({ initialWriteups }: { initialWriteups: WriteupListItem[] }) {
   const [query, setQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [downloading, setDownloading] = useState<'md' | 'json' | null>(null);

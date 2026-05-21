@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAdminRequest } from '@/lib/auth';
-import { getWriteupsByIds, listWriteups } from '@/lib/db/writeups';
+import { getWriteupItemsByIds, listWriteupItems } from '@/lib/db/writeups';
 import { writeupUrl } from '@/lib/seo';
-import { Writeup } from '@/types';
+import { WriteupListItem } from '@/types';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 });
   }
 
-  const writeups = ids.length > 0 ? getWriteupsByIds(ids) : listWriteups({ includePrivate: true });
+  const writeups = ids.length > 0 ? getWriteupItemsByIds(ids) : listWriteupItems({ includePrivate: true });
   const today = new Date().toISOString().split('T')[0];
 
   if (format === 'json') {
@@ -43,9 +43,6 @@ export async function POST(request: NextRequest) {
         difficulty: w.difficulty,
         status: w.status,
         views: w.views,
-        content: w.content,
-        createdAt: w.createdAt,
-        updatedAt: w.updatedAt,
       })),
     };
 
@@ -67,7 +64,7 @@ export async function POST(request: NextRequest) {
   });
 }
 
-function buildMarkdown(writeups: Writeup[], today: string): string {
+function buildMarkdown(writeups: WriteupListItem[], today: string): string {
   const lines: string[] = [
     `# CTF Writeups Export`,
     ``,

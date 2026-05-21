@@ -218,11 +218,20 @@ function normalizeExistingWriteupSlugs() {
   updateMany(rows);
 }
 
-export function getWriteupsByIds(ids: string[]) {
+const LIST_COLUMNS = 'id, slug, title, category, tags, author, date, summary, difficulty, views, word_count, reading_time_minutes, status, created_at, updated_at';
+
+export function listWriteupItems(options: { includePrivate?: boolean } = {}): WriteupListItem[] {
+  const rows = options.includePrivate
+    ? db.prepare(`SELECT ${LIST_COLUMNS} FROM writeups ORDER BY date DESC, updated_at DESC`).all()
+    : db.prepare(`SELECT ${LIST_COLUMNS} FROM writeups WHERE status = 'public' ORDER BY date DESC, updated_at DESC`).all();
+  return (rows as Omit<WriteupRow, 'content'>[]).map(toWriteupListItem);
+}
+
+export function getWriteupItemsByIds(ids: string[]): WriteupListItem[] {
   if (ids.length === 0) return [];
   const placeholders = ids.map(() => '?').join(', ');
-  const rows = db.prepare(`SELECT * FROM writeups WHERE id IN (${placeholders}) ORDER BY date DESC, updated_at DESC`).all(...ids) as WriteupRow[];
-  return rows.map(toWriteup);
+  const rows = db.prepare(`SELECT ${LIST_COLUMNS} FROM writeups WHERE id IN (${placeholders}) ORDER BY date DESC, updated_at DESC`).all(...ids) as Omit<WriteupRow, 'content'>[];
+  return rows.map(toWriteupListItem);
 }
 
 export function listWriteups(options: { includePrivate?: boolean } = {}) {
