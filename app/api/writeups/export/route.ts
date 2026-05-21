@@ -1,19 +1,73 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAdminRequest } from '@/lib/auth';
-import { listWriteups } from '@/lib/db/writeups';
+import { getWriteupsByIds, listWriteups } from '@/lib/db/writeups';
 import { writeupUrl } from '@/lib/seo';
+import { Writeup } from '@/types';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
   if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
   }
 
-  const writeups = listWriteups({ includePrivate: true });
+  let ids: string[] = [];
+  let format: 'md' | 'json' = 'md';
+
+  try {
+    const body = (await request.json()) as { ids?: string[]; format?: string };
+    ids = Array.isArray(body.ids) ? body.ids.filter((id) => typeof id === 'string') : [];
+    format = body.format === 'json' ? 'json' : 'md';
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 });
+  }
+
+  const writeups = ids.length > 0 ? getWriteupsByIds(ids) : listWriteups({ includePrivate: true });
   const today = new Date().toISOString().split('T')[0];
 
+  if (format === 'json') {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      total: writeups.length,
+      writeups: writeups.map((w) => ({
+        id: w.id,
+        slug: w.slug,
+        url: writeupUrl(w),
+        title: w.title,
+        category: w.category,
+        tags: w.tags,
+        author: w.author,
+        date: w.date,
+        summary: w.summary,
+        difficulty: w.difficulty,
+        status: w.status,
+        views: w.views,
+        content: w.content,
+        createdAt: w.createdAt,
+        updatedAt: w.updatedAt,
+      })),
+    };
+
+    return new NextResponse(JSON.stringify(payload, null, 2), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Content-Disposition': `attachment; filename="writeups-export-${today}.json"`,
+      },
+    });
+  }
+
+  return new NextResponse(buildMarkdown(writeups, today), {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/markdown; charset=utf-8',
+      'Content-Disposition': `attachment; filename="writeups-export-${today}.md"`,
+    },
+  });
+}
+
+function buildMarkdown(writeups: Writeup[], today: string): string {
   const lines: string[] = [
     `# CTF Writeups Export`,
     ``,
@@ -23,29 +77,17 @@ export async function GET(request: NextRequest) {
     ``,
   ];
 
-  for (const writeup of writeups) {
-    const url = writeupUrl(writeup);
-    lines.push(`## [${writeup.title}](${url})`);
+  for (const w of writeups) {
+    lines.push(`## [${w.title}](${writeupUrl(w)})`);
     lines.push(``);
-    lines.push(`**Category:** ${writeup.category} | **Status:** ${writeup.status} | **Date:** ${writeup.date}`);
-    if (writeup.tags.length > 0) {
-      lines.push(`**Tags:** ${writeup.tags.join(', ')}`);
-    }
+    lines.push(`**Category:** ${w.category} | **Status:** ${w.status} | **Date:** ${w.date}`);
+    if (w.tags.length > 0) lines.push(`**Tags:** ${w.tags.join(', ')}`);
     lines.push(``);
-    lines.push(writeup.summary);
+    lines.push(w.summary);
     lines.push(``);
     lines.push(`---`);
     lines.push(``);
   }
 
-  const markdown = lines.join('\n');
-  const filename = `writeups-export-${today}.md`;
-
-  return new NextResponse(markdown, {
-    status: 200,
-    headers: {
-      'Content-Type': 'text/markdown; charset=utf-8',
-      'Content-Disposition': `attachment; filename="${filename}"`,
-    },
-  });
+  return lines.join('\n');
 }

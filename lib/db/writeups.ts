@@ -218,6 +218,13 @@ function normalizeExistingWriteupSlugs() {
   updateMany(rows);
 }
 
+export function getWriteupsByIds(ids: string[]) {
+  if (ids.length === 0) return [];
+  const placeholders = ids.map(() => '?').join(', ');
+  const rows = db.prepare(`SELECT * FROM writeups WHERE id IN (${placeholders}) ORDER BY date DESC, updated_at DESC`).all(...ids) as WriteupRow[];
+  return rows.map(toWriteup);
+}
+
 export function listWriteups(options: { includePrivate?: boolean } = {}) {
   const rows = options.includePrivate
     ? db.prepare('SELECT * FROM writeups ORDER BY date DESC, updated_at DESC').all()
