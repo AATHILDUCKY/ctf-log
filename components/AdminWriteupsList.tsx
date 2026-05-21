@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Edit3, Eye, FilePlus2, Search, ShieldAlert, Trash2, X } from 'lucide-react';
+import { Download, Edit3, Eye, FilePlus2, Search, ShieldAlert, Trash2, X } from 'lucide-react';
 import { Writeup, WriteupStatus } from '@/types';
 
 export default function AdminWriteupsList({ initialWriteups }: { initialWriteups: Writeup[] }) {
@@ -11,6 +11,32 @@ export default function AdminWriteupsList({ initialWriteups }: { initialWriteups
   const [statusFilter, setStatusFilter] = useState<WriteupStatus | 'all'>('all');
   const [deleteTarget, setDeleteTarget] = useState<Writeup | null>(null);
   const [message, setMessage] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
+
+  async function downloadMarkdown() {
+    setIsExporting(true);
+    try {
+      const response = await fetch('/api/writeups/export');
+      if (!response.ok) {
+        setMessage('Failed to export writeups.');
+        return;
+      }
+      const blob = await response.blob();
+      const disposition = response.headers.get('Content-Disposition') ?? '';
+      const match = disposition.match(/filename="([^"]+)"/);
+      const filename = match?.[1] ?? 'writeups-export.md';
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = filename;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setMessage('Export failed. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  }
 
   const filteredWriteups = useMemo(() => {
     const normalizedQuery = query.toLowerCase();
@@ -43,6 +69,25 @@ export default function AdminWriteupsList({ initialWriteups }: { initialWriteups
 
   return (
     <div className="space-y-4">
+      {/* Bulk Download Section */}
+      <div className="rounded-lg border border-dracula-purple/30 bg-dracula-purple/5 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-dracula-purple mb-1">Bulk Export</p>
+            <p className="text-sm text-dracula-comment">Download all writeups as a Markdown file with titles, links, and descriptions.</p>
+          </div>
+          <button
+            type="button"
+            onClick={downloadMarkdown}
+            disabled={isExporting}
+            className="inline-flex shrink-0 items-center gap-2 rounded-md bg-dracula-purple px-4 py-2 text-sm font-bold text-dracula-bg transition-opacity hover:brightness-95 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            <Download className="h-4 w-4" />
+            {isExporting ? 'Exporting…' : 'Download Markdown'}
+          </button>
+        </div>
+      </div>
+
       <div className="flex flex-col gap-3 rounded-lg border border-dracula-line/40 bg-dracula-selection/10 p-4 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex min-w-0 items-center gap-2 rounded-md border border-dracula-line/50 bg-dracula-bg/70 px-3 py-2 xl:w-96">
           <Search className="h-4 w-4 text-dracula-comment" />
