@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import {
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ExternalLink,
@@ -14,6 +15,7 @@ import {
   ShieldAlert,
   Terminal,
   Twitter,
+  X,
   Youtube,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
@@ -34,6 +36,7 @@ export default function Dashboard({
   initialPage = 1,
   pageSize = POSTS_PER_PAGE,
   initialStats,
+  initialCategory = 'All',
 }: {
   writeups: WriteupListItem[];
   ads?: Ad[];
@@ -43,16 +46,18 @@ export default function Dashboard({
   initialPage?: number;
   pageSize?: number;
   initialStats: { totalWriteups: number; totalViews: number };
+  initialCategory?: string;
 }) {
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
-  const [selectedCategory, setSelectedCategory] = useState<string | 'All'>('All');
+  const [selectedCategory, setSelectedCategory] = useState<string | 'All'>(initialCategory);
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [visibleWriteups, setVisibleWriteups] = useState(initialWriteups);
   const [totalResults, setTotalResults] = useState(initialTotal);
   const [stats, setStats] = useState(initialStats);
   const [isLoading, setIsLoading] = useState(false);
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  const categories: (string | 'All')[] = ['All', ...(challengeTracks.length > 0 ? challengeTracks : ['CTF', 'HackTheBox', 'TryHackMe', 'VulnHub', 'Bug Bounty', 'CVE'])];
+  const categories: (string | 'All')[] = ['All', ...(challengeTracks.length > 0 ? challengeTracks : ['CTF', 'HackTheBox', 'TryHackMe', 'VulnHub', 'Bug Bounty', 'CVE', 'Cyber Security News'])];
   const sidebarAds = ads.filter((ad) => ad.placement === 'home-sidebar');
   const feedAds = ads.filter((ad) => ad.placement === 'home-feed').slice(0, 1);
   const socialIconMap = {
@@ -125,14 +130,14 @@ export default function Dashboard({
     <div className="min-h-screen bg-dracula-bg text-dracula-fg">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
         <motion.div
           key="list"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="flex flex-col lg:flex-row gap-12"
         >
-              <aside className="w-full lg:w-80 shrink-0 space-y-8">
+              <aside className="hidden lg:block w-full lg:w-80 shrink-0 space-y-8">
                 <section className="bg-dracula-selection/20 p-6 rounded-2xl border border-dracula-line/50">
                   <h3 className="text-sm font-bold text-dracula-comment uppercase tracking-widest mb-4 flex items-center gap-2">
                     <Search className="w-4 h-4 text-dracula-purple" />
@@ -224,7 +229,117 @@ export default function Dashboard({
                 <AdSlot ads={sidebarAds} />
               </aside>
 
-              <div className="flex-1 space-y-12 min-w-0">
+              <div className="flex-1 space-y-6 lg:space-y-12 min-w-0">
+
+                {/* Mobile-only: search bar + filter dropdown toggle */}
+                <div className="lg:hidden space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dracula-comment pointer-events-none" />
+                      <input
+                        type="text"
+                        placeholder="Search exploits..."
+                        value={searchQuery}
+                        onChange={(event) => {
+                          setCurrentPage(1);
+                          setSearchQuery(event.target.value);
+                        }}
+                        className="w-full bg-dracula-selection/50 border border-dracula-line rounded-xl py-2.5 pl-9 pr-4 focus:outline-none focus:border-dracula-purple text-dracula-fg text-sm transition-colors"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setMobileFilterOpen((open) => !open)}
+                      className={`inline-flex items-center gap-1.5 shrink-0 px-3 py-2.5 rounded-xl border text-sm font-bold transition-all ${
+                        mobileFilterOpen || selectedCategory !== 'All'
+                          ? 'bg-dracula-purple/20 border-dracula-purple/60 text-dracula-purple'
+                          : 'bg-dracula-selection/50 border-dracula-line text-dracula-comment hover:text-dracula-fg'
+                      }`}
+                      aria-expanded={mobileFilterOpen}
+                      aria-label="Toggle filters"
+                    >
+                      <Filter className="w-3.5 h-3.5" />
+                      {selectedCategory !== 'All' ? (
+                        <span className="max-w-[80px] truncate text-xs">{selectedCategory}</span>
+                      ) : (
+                        <span className="text-xs">Filter</span>
+                      )}
+                      <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${mobileFilterOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                  </div>
+
+                  {/* Dropdown panel */}
+                  {mobileFilterOpen && (
+                    <div className="rounded-xl border border-dracula-line/60 bg-dracula-bg/98 backdrop-blur-md shadow-xl overflow-hidden">
+                      {/* Header */}
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-dracula-line/40 bg-dracula-selection/20">
+                        <span className="text-xs font-bold uppercase tracking-widest text-dracula-comment flex items-center gap-2">
+                          <Filter className="w-3.5 h-3.5 text-dracula-cyan" />
+                          Challenge Tracks
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setMobileFilterOpen(false)}
+                          className="text-dracula-comment hover:text-dracula-fg"
+                          aria-label="Close filters"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      {/* Categories grid */}
+                      <div className="p-3 grid grid-cols-2 gap-1.5">
+                        {categories.map((category) => (
+                          <button
+                            key={category}
+                            type="button"
+                            onClick={() => {
+                              setCurrentPage(1);
+                              setSelectedCategory(category);
+                              setMobileFilterOpen(false);
+                            }}
+                            className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                              selectedCategory === category
+                                ? 'bg-dracula-purple text-dracula-bg shadow-md shadow-dracula-purple/20'
+                                : 'bg-dracula-selection/40 text-dracula-comment hover:bg-dracula-selection/70 hover:text-dracula-fg'
+                            }`}
+                          >
+                            <span className="truncate">{category}</span>
+                            {selectedCategory === category && <div className="w-1.5 h-1.5 bg-dracula-bg rounded-full shrink-0 ml-1" />}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Stats footer */}
+                      <div className="flex items-center gap-4 px-4 py-3 border-t border-dracula-line/40 bg-dracula-selection/10">
+                        <div className="text-xs font-bold text-dracula-green">
+                          {stats.totalWriteups} <span className="text-dracula-comment font-normal">writeups</span>
+                        </div>
+                        <div className="text-xs font-bold text-dracula-cyan">
+                          {formatCompactNumber(stats.totalViews)} <span className="text-dracula-comment font-normal">views</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Active filter badge when closed */}
+                  {!mobileFilterOpen && selectedCategory !== 'All' && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-dracula-comment">Filtered:</span>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-dracula-purple/20 border border-dracula-purple/40 text-xs font-bold text-dracula-purple">
+                        {selectedCategory}
+                        <button
+                          type="button"
+                          onClick={() => { setSelectedCategory('All'); setCurrentPage(1); }}
+                          aria-label="Clear filter"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    </div>
+                  )}
+                </div>
+
                 <section className="space-y-4">
                   <motion.div
                     initial={{ scale: 0.9, opacity: 0 }}
@@ -235,24 +350,24 @@ export default function Dashboard({
                     <Terminal className="w-3 h-3" />
                     Security Knowledge Base
                   </motion.div>
-                  <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-dracula-fg">
+                  <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-dracula-fg">
                     CTF{' '}
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-dracula-purple via-dracula-pink to-dracula-cyan">Writeup Hub</span>
                   </h1>
-                  <p className="text-dracula-comment max-w-2xl text-base md:text-lg">
+                  <p className="text-dracula-comment max-w-2xl text-sm md:text-lg">
                     Comprehensive writeups for ethical hackers. Deep dives into the latest vulnerabilities and CTF tactics.
                   </p>
                 </section>
 
                 <div className="flex items-center justify-between border-b border-dracula-line/30 pb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-dracula-green rounded-full animate-pulse" />
-                    <span className="text-sm font-bold text-dracula-comment uppercase tracking-widest">Latest Discoveries</span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-2 h-2 bg-dracula-green rounded-full animate-pulse shrink-0" />
+                    <span className="text-xs sm:text-sm font-bold text-dracula-comment uppercase tracking-widest truncate">Latest Discoveries</span>
                   </div>
-                  <span className="text-xs text-dracula-line font-mono uppercase">
+                  <span className="text-xs text-dracula-line font-mono uppercase shrink-0 ml-2">
                     {isLoading
                       ? 'Searching...'
-                      : `Showing ${totalResults === 0 ? 0 : pageStart + 1}-${Math.min(pageStart + pageSize, totalResults)} of ${totalResults}`}
+                      : `${totalResults === 0 ? 0 : pageStart + 1}–${Math.min(pageStart + pageSize, totalResults)} of ${totalResults}`}
                   </span>
                 </div>
 

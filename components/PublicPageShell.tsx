@@ -23,8 +23,8 @@ export default function PublicPageShell({ page, children }: { page: SitePage; ch
             </div>
             <div className="min-w-0">
               <p className="text-xs font-bold uppercase tracking-widest text-dracula-cyan">CTFlogs</p>
-              <h1 className="mt-2 text-3xl font-bold tracking-tight md:text-5xl">{page.title}</h1>
-              <p className="mt-4 max-w-3xl text-base text-dracula-comment md:text-lg">{page.summary}</p>
+              <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl md:text-5xl">{page.title}</h1>
+              <p className="mt-4 max-w-3xl text-sm text-dracula-comment md:text-base md:text-lg">{page.summary}</p>
             </div>
           </div>
 

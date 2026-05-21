@@ -46,7 +46,7 @@ export default function WriteupCard({ writeup }: WriteupCardProps) {
           <p className="text-dracula-comment text-sm line-clamp-1 mt-1">{writeup.summary}</p>
         </div>
 
-        <div className="flex items-center justify-between md:flex-col md:items-end gap-3 shrink-0">
+        <div className="flex flex-col gap-2 md:items-end shrink-0">
           <div className="flex flex-wrap gap-1.5 md:justify-end">
             {writeup.tags.slice(0, 3).map((tag) => (
               <span key={tag} className="text-[10px] uppercase font-bold text-dracula-line">
@@ -55,7 +55,7 @@ export default function WriteupCard({ writeup }: WriteupCardProps) {
             ))}
           </div>
 
-          <div className="flex items-center gap-3 text-[11px] text-dracula-comment whitespace-nowrap">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-dracula-comment">
             <div className="flex items-center gap-1">
               <Calendar className="w-3 h-3" />
               {writeup.date}

@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, type KeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { type ClipboardEvent, FormEvent, type KeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -32,7 +32,7 @@ import MarkdownPreview from '@/components/MarkdownPreview';
 import { Category, Writeup, WriteupInput } from '@/types';
 import { slugifyWriteupTitle } from '@/lib/writeupRoutes';
 
-const fallbackCategories: Category[] = ['CTF', 'HackTheBox', 'TryHackMe', 'VulnHub', 'Bug Bounty', 'CVE'];
+const fallbackCategories: Category[] = ['CTF', 'HackTheBox', 'TryHackMe', 'VulnHub', 'Bug Bounty', 'CVE', 'Cyber Security News'];
 const difficulties: NonNullable<Writeup['difficulty']>[] = ['Very Easy', 'Easy', 'Medium', 'Hard', 'Insane'];
 
 const ctfTemplate = `## Overview

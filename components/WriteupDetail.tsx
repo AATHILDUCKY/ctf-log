@@ -83,9 +83,9 @@ export default function WriteupDetail({ writeup, backHref = '/' }: WriteupDetail
           )}
         </div>
 
-        <h1 className="text-4xl md:text-5xl font-bold text-dracula-fg mb-6 leading-tight">{writeup.title}</h1>
+        <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-dracula-fg mb-6 leading-tight">{writeup.title}</h1>
 
-        <div className="flex flex-wrap items-center gap-6 text-dracula-comment border-y border-dracula-line/30 py-4">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-dracula-comment border-y border-dracula-line/30 py-4">
           <div className="flex items-center gap-2">
             <User className="w-4 h-4 text-dracula-purple" />
             <span className="text-sm">{writeup.author}</span>
