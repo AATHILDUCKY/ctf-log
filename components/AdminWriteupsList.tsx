@@ -2,28 +2,37 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Edit3, Eye, FilePlus2, Search, ShieldAlert, Trash2, X } from 'lucide-react';
+import { Edit3, Eye, FilePlus2, Newspaper, Search, ShieldAlert, Trash2, X } from 'lucide-react';
 import { Writeup, WriteupStatus } from '@/types';
+
+const NEWS_CATEGORY = 'Cyber Security News';
 
 export default function AdminWriteupsList({ initialWriteups }: { initialWriteups: Writeup[] }) {
   const [writeups, setWriteups] = useState(initialWriteups);
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<WriteupStatus | 'all'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [deleteTarget, setDeleteTarget] = useState<Writeup | null>(null);
   const [message, setMessage] = useState('');
+
+  const allCategories = useMemo(() => {
+    const cats = Array.from(new Set(writeups.map((w) => w.category).filter(Boolean)));
+    return cats.sort();
+  }, [writeups]);
 
   const filteredWriteups = useMemo(() => {
     const normalizedQuery = query.toLowerCase();
     return writeups.filter((writeup) => {
       const matchesStatus = statusFilter === 'all' || writeup.status === statusFilter;
+      const matchesCategory = categoryFilter === 'all' || writeup.category === categoryFilter;
       const matchesQuery =
         writeup.title.toLowerCase().includes(normalizedQuery) ||
         writeup.summary.toLowerCase().includes(normalizedQuery) ||
         writeup.tags.some((tag) => tag.toLowerCase().includes(normalizedQuery));
 
-      return matchesStatus && matchesQuery;
+      return matchesStatus && matchesCategory && matchesQuery;
     });
-  }, [query, statusFilter, writeups]);
+  }, [query, statusFilter, categoryFilter, writeups]);
 
   async function confirmDelete() {
     if (!deleteTarget) return;
@@ -61,10 +70,32 @@ export default function AdminWriteupsList({ initialWriteups }: { initialWriteups
               {status}
             </button>
           ))}
-          <Link href="/admin/writeups/new" className="inline-flex items-center gap-2 rounded-md bg-dracula-green px-3 py-2 text-sm font-bold text-dracula-bg hover:brightness-95">
-            <FilePlus2 className="h-4 w-4" />
-            New
-          </Link>
+          <select
+            value={categoryFilter}
+            onChange={(event) => setCategoryFilter(event.target.value)}
+            className={`rounded-md px-3 py-2 text-xs font-bold uppercase transition-colors bg-dracula-selection/40 outline-none cursor-pointer ${
+              categoryFilter !== 'all' ? 'text-dracula-purple border border-dracula-purple/40' : 'text-dracula-comment hover:text-dracula-fg border border-transparent'
+            }`}
+          >
+            <option value="all">All Categories</option>
+            {allCategories.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+          {categoryFilter === NEWS_CATEGORY ? (
+            <Link
+              href={`/admin/writeups/new?category=${encodeURIComponent(NEWS_CATEGORY)}`}
+              className="inline-flex items-center gap-2 rounded-md bg-dracula-pink px-3 py-2 text-sm font-bold text-dracula-bg hover:brightness-95"
+            >
+              <Newspaper className="h-4 w-4" />
+              Add News
+            </Link>
+          ) : (
+            <Link href="/admin/writeups/new" className="inline-flex items-center gap-2 rounded-md bg-dracula-green px-3 py-2 text-sm font-bold text-dracula-bg hover:brightness-95">
+              <FilePlus2 className="h-4 w-4" />
+              New
+            </Link>
+          )}
         </div>
       </div>
 

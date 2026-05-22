@@ -11,6 +11,7 @@ import {
   Globe2,
   Instagram,
   Linkedin,
+  Newspaper,
   Search,
   ShieldAlert,
   Terminal,
@@ -341,28 +342,53 @@ export default function Dashboard({
                 </div>
 
                 <section className="space-y-4">
-                  <motion.div
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.5 }}
-                    className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-dracula-selection border border-dracula-purple/30 text-dracula-purple text-xs font-medium mb-2"
-                  >
-                    <Terminal className="w-3 h-3" />
-                    Security Knowledge Base
-                  </motion.div>
-                  <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-dracula-fg">
-                    CTF{' '}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-dracula-purple via-dracula-pink to-dracula-cyan">Writeup Hub</span>
-                  </h1>
-                  <p className="text-dracula-comment max-w-2xl text-sm md:text-lg">
-                    Comprehensive writeups for ethical hackers. Deep dives into the latest vulnerabilities and CTF tactics.
-                  </p>
+                  {selectedCategory === 'Cyber Security News' ? (
+                    <>
+                      <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ duration: 0.5 }}
+                        className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-dracula-selection border border-dracula-pink/30 text-dracula-pink text-xs font-medium mb-2"
+                      >
+                        <Newspaper className="w-3 h-3" />
+                        Live Threat Intelligence
+                      </motion.div>
+                      <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-dracula-fg">
+                        Cyber Security{' '}
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-dracula-pink via-dracula-red to-dracula-orange">News</span>
+                      </h1>
+                      <p className="text-dracula-comment max-w-2xl text-sm md:text-lg">
+                        Latest vulnerability disclosures, exploit research, threat intelligence, and security advisories.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ duration: 0.5 }}
+                        className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-dracula-selection border border-dracula-purple/30 text-dracula-purple text-xs font-medium mb-2"
+                      >
+                        <Terminal className="w-3 h-3" />
+                        Security Knowledge Base
+                      </motion.div>
+                      <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-dracula-fg">
+                        CTF{' '}
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-dracula-purple via-dracula-pink to-dracula-cyan">Writeup Hub</span>
+                      </h1>
+                      <p className="text-dracula-comment max-w-2xl text-sm md:text-lg">
+                        Comprehensive writeups for ethical hackers. Deep dives into the latest vulnerabilities and CTF tactics.
+                      </p>
+                    </>
+                  )}
                 </section>
 
                 <div className="flex items-center justify-between border-b border-dracula-line/30 pb-4">
                   <div className="flex items-center gap-2 min-w-0">
                     <div className="w-2 h-2 bg-dracula-green rounded-full animate-pulse shrink-0" />
-                    <span className="text-xs sm:text-sm font-bold text-dracula-comment uppercase tracking-widest truncate">Latest Discoveries</span>
+                    <span className="text-xs sm:text-sm font-bold text-dracula-comment uppercase tracking-widest truncate">
+                      {selectedCategory === 'Cyber Security News' ? 'Latest News' : 'Latest Discoveries'}
+                    </span>
                   </div>
                   <span className="text-xs text-dracula-line font-mono uppercase shrink-0 ml-2">
                     {isLoading
