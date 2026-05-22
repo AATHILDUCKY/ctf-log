@@ -267,16 +267,17 @@ export function queryPublicWriteups({
   const safePageSize = Number.isFinite(pageSize) ? Math.floor(pageSize) : 10;
   const limit = Math.min(Math.max(safePageSize, 1), 50);
   const offset = (safePage - 1) * limit;
-  const normalizedCategory = category && category !== 'All' ? category : null;
-  const normalizedExclude = excludeCategory && excludeCategory !== normalizedCategory ? excludeCategory : null;
+  const normalizedCategory = category && category !== 'All' ? category.trim() : null;
+  const normalizedExclude = excludeCategory?.trim() || null;
+  const effectiveExclude = normalizedExclude && normalizedExclude.toLowerCase() !== (normalizedCategory?.toLowerCase() ?? '') ? normalizedExclude : null;
   const searchQuery = toSearchQuery(query);
 
   const baseSelect = `
     SELECT id, slug, title, category, tags, author, date, summary, difficulty, views, word_count, reading_time_minutes, status, created_at, updated_at
     FROM writeups
     WHERE status = 'public'
-    ${normalizedCategory ? 'AND category = @category' : ''}
-    ${normalizedExclude ? 'AND category != @excludeCategory' : ''}
+    ${normalizedCategory ? 'AND category = @category COLLATE NOCASE' : ''}
+    ${effectiveExclude ? 'AND category != @excludeCategory COLLATE NOCASE' : ''}
     ORDER BY date DESC, updated_at DESC
     LIMIT @limit OFFSET @offset
   `;
@@ -285,12 +286,12 @@ export function queryPublicWriteups({
     SELECT COUNT(*) AS count
     FROM writeups
     WHERE status = 'public'
-    ${normalizedCategory ? 'AND category = @category' : ''}
-    ${normalizedExclude ? 'AND category != @excludeCategory' : ''}
+    ${normalizedCategory ? 'AND category = @category COLLATE NOCASE' : ''}
+    ${effectiveExclude ? 'AND category != @excludeCategory COLLATE NOCASE' : ''}
   `;
 
   if (!searchQuery.matchQuery) {
-    const params = { category: normalizedCategory, excludeCategory: normalizedExclude, limit, offset };
+    const params = { category: normalizedCategory, excludeCategory: effectiveExclude, limit, offset };
     const rows = db.prepare(baseSelect).all(params) as Omit<WriteupRow, 'content'>[];
     const total = db.prepare(baseCount).get(params) as { count: number };
     return { writeups: rows.map(toWriteupListItem), total: total.count, page: safePage, pageSize: limit };
@@ -300,14 +301,14 @@ export function queryPublicWriteups({
   const searchParams: Record<string, string | number | null> = {
     query: searchQuery.matchQuery,
     category: normalizedCategory,
-    excludeCategory: normalizedExclude,
+    excludeCategory: effectiveExclude,
     limit,
     offset,
     exactPhrase: `%${searchQuery.exactPhrase}%`,
     ...scoring.params,
   };
-  const categoryFilter = normalizedCategory ? 'AND w.category = @category' : '';
-  const excludeFilter = normalizedExclude ? 'AND w.category != @excludeCategory' : '';
+  const categoryFilter = normalizedCategory ? 'AND w.category = @category COLLATE NOCASE' : '';
+  const excludeFilter = effectiveExclude ? 'AND w.category != @excludeCategory COLLATE NOCASE' : '';
   const rows = db.prepare(`
     SELECT w.id, w.slug, w.title, w.category, w.tags, w.author, w.date, w.summary, w.difficulty, w.views, w.word_count, w.reading_time_minutes, w.status, w.created_at, w.updated_at,
       bm25(writeups_fts, 9, 6, 5, 3, 1) AS rank,

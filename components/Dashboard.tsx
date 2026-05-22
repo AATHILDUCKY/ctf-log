@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import {
   ChevronDown,
@@ -59,6 +59,7 @@ export default function Dashboard({
   const [stats, setStats] = useState(initialStats);
   const [isLoading, setIsLoading] = useState(false);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const isFirstRender = useRef(true);
 
   const allTracks = challengeTracks.length > 0 ? challengeTracks : ['CTF', 'HackTheBox', 'TryHackMe', 'VulnHub', 'Bug Bounty', 'CVE', 'News'];
   const categories: (string | 'All')[] = ['All', ...allTracks.filter((t) => t !== excludeCategory)];
@@ -80,6 +81,12 @@ export default function Dashboard({
   }, [totalPages]);
 
   useEffect(() => {
+    // Skip the first render — SSR already provided the correct data.
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
     const controller = new AbortController();
     const timeout = window.setTimeout(() => {
       const params = new URLSearchParams({
@@ -112,7 +119,7 @@ export default function Dashboard({
       controller.abort();
       window.clearTimeout(timeout);
     };
-  }, [searchQuery, selectedCategory, currentPage, pageSize]);
+  }, [searchQuery, selectedCategory, currentPage, pageSize, excludeCategory]);
 
   useEffect(() => {
     const refreshStats = () => {

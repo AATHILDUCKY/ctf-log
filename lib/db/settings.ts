@@ -10,7 +10,7 @@ type SiteSettingsRow = {
   updated_at: string;
 };
 
-const DEFAULT_CHALLENGE_TRACKS = ['CTF', 'HackTheBox', 'TryHackMe', 'VulnHub', 'Bug Bounty', 'CVE'];
+const DEFAULT_CHALLENGE_TRACKS = ['CTF', 'HackTheBox', 'TryHackMe', 'VulnHub', 'Bug Bounty', 'CVE', 'News'];
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS site_settings (
@@ -37,6 +37,20 @@ if (!existing) {
 }
 
 db.prepare("UPDATE site_settings SET site_name = 'CTFlogs' WHERE id = 1 AND site_name = 'PwnTrends'").run();
+
+// Ensure "News" is present in existing settings rows (migration for pre-News deployments).
+const settingsRow = db.prepare('SELECT challenge_tracks FROM site_settings WHERE id = 1').get() as { challenge_tracks: string | null } | undefined;
+if (settingsRow) {
+  const existingTracks = parseChallengeTracks(settingsRow.challenge_tracks);
+  const hasNews = existingTracks.some((t) => t.toLowerCase() === 'news');
+  if (!hasNews) {
+    const updatedTracks = [...existingTracks, 'News'];
+    db.prepare('UPDATE site_settings SET challenge_tracks = ?, updated_at = ? WHERE id = 1').run(
+      JSON.stringify(updatedTracks),
+      new Date().toISOString(),
+    );
+  }
+}
 
 function toSettings(row: SiteSettingsRow): SiteSettings {
   const parsedTracks = parseChallengeTracks(row.challenge_tracks);

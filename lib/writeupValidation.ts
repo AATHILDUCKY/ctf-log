@@ -21,13 +21,15 @@ export function parseWriteupInput(value: unknown): WriteupInput {
   if (!input.summary?.trim()) throw new Error('Summary is required.');
   if (!input.content?.trim()) throw new Error('Content is required.');
   if (!input.date?.trim()) throw new Error('Date is required.');
-  const normalizedCategory = String(input.category ?? '').trim();
-  if (!normalizedCategory) throw new Error('Choose a valid category.');
+  const rawCategory = String(input.category ?? '').trim();
+  if (!rawCategory) throw new Error('Choose a valid category.');
 
   const tracks = getSiteSettings().challengeTracks ?? [];
-  if (tracks.length > 0 && !tracks.includes(normalizedCategory)) {
+  const matchedTrack = tracks.find((t) => t.toLowerCase() === rawCategory.toLowerCase());
+  if (tracks.length > 0 && !matchedTrack) {
     throw new Error('Category must match one of the configured challenge tracks.');
   }
+  const normalizedCategory = matchedTrack ?? rawCategory;
   if (input.status !== 'public' && input.status !== 'private') throw new Error('Choose a valid visibility.');
 
   return {
