@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Edit3, Eye, FilePlus2, Newspaper, Search, ShieldAlert, Trash2, X } from 'lucide-react';
 import { Writeup, WriteupStatus } from '@/types';
 
-const NEWS_CATEGORY = 'Cyber Security News';
+const NEWS_CATEGORY = 'News';
 
 export default function AdminWriteupsList({ initialWriteups }: { initialWriteups: Writeup[] }) {
   const [writeups, setWriteups] = useState(initialWriteups);

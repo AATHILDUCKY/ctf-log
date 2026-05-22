@@ -106,6 +106,13 @@ if (count.count === 0) {
 db.exec("UPDATE writeups SET slug = lower(replace(trim(title), ' ', '-')) WHERE slug IS NULL OR trim(slug) = '';");
 db.exec('UPDATE writeups SET word_count = 0 WHERE word_count IS NULL;');
 db.exec('UPDATE writeups SET reading_time_minutes = 1 WHERE reading_time_minutes IS NULL OR reading_time_minutes < 1;');
+
+const legacyNewsCount = (db.prepare("SELECT COUNT(*) AS count FROM writeups WHERE category = 'Cyber Security News'").get() as { count: number }).count;
+if (legacyNewsCount > 0) {
+  db.exec("UPDATE writeups SET category = 'News' WHERE category = 'Cyber Security News';");
+  rebuildWriteupsSearchIndex();
+}
+
 normalizeExistingWriteupSlugs();
 
 const writeupCount = db.prepare('SELECT COUNT(*) AS count FROM writeups').get() as { count: number };
@@ -247,17 +254,20 @@ export function queryPublicWriteups({
   pageSize = 10,
   query = '',
   category,
+  excludeCategory,
 }: {
   page?: number;
   pageSize?: number;
   query?: string;
   category?: string | 'All';
+  excludeCategory?: string;
 }) {
   const safePage = Number.isFinite(page) ? Math.max(Math.floor(page), 1) : 1;
   const safePageSize = Number.isFinite(pageSize) ? Math.floor(pageSize) : 10;
   const limit = Math.min(Math.max(safePageSize, 1), 50);
   const offset = (safePage - 1) * limit;
   const normalizedCategory = category && category !== 'All' ? category : null;
+  const normalizedExclude = excludeCategory && excludeCategory !== normalizedCategory ? excludeCategory : null;
   const searchQuery = toSearchQuery(query);
 
   const baseSelect = `
@@ -265,6 +275,7 @@ export function queryPublicWriteups({
     FROM writeups
     WHERE status = 'public'
     ${normalizedCategory ? 'AND category = @category' : ''}
+    ${normalizedExclude ? 'AND category != @excludeCategory' : ''}
     ORDER BY date DESC, updated_at DESC
     LIMIT @limit OFFSET @offset
   `;
@@ -274,10 +285,11 @@ export function queryPublicWriteups({
     FROM writeups
     WHERE status = 'public'
     ${normalizedCategory ? 'AND category = @category' : ''}
+    ${normalizedExclude ? 'AND category != @excludeCategory' : ''}
   `;
 
   if (!searchQuery.matchQuery) {
-    const params = { category: normalizedCategory, limit, offset };
+    const params = { category: normalizedCategory, excludeCategory: normalizedExclude, limit, offset };
     const rows = db.prepare(baseSelect).all(params) as Omit<WriteupRow, 'content'>[];
     const total = db.prepare(baseCount).get(params) as { count: number };
     return { writeups: rows.map(toWriteupListItem), total: total.count, page: safePage, pageSize: limit };
@@ -287,12 +299,14 @@ export function queryPublicWriteups({
   const searchParams: Record<string, string | number | null> = {
     query: searchQuery.matchQuery,
     category: normalizedCategory,
+    excludeCategory: normalizedExclude,
     limit,
     offset,
     exactPhrase: `%${searchQuery.exactPhrase}%`,
     ...scoring.params,
   };
   const categoryFilter = normalizedCategory ? 'AND w.category = @category' : '';
+  const excludeFilter = normalizedExclude ? 'AND w.category != @excludeCategory' : '';
   const rows = db.prepare(`
     SELECT w.id, w.slug, w.title, w.category, w.tags, w.author, w.date, w.summary, w.difficulty, w.views, w.word_count, w.reading_time_minutes, w.status, w.created_at, w.updated_at,
       bm25(writeups_fts, 9, 6, 5, 3, 1) AS rank,
@@ -304,6 +318,7 @@ export function queryPublicWriteups({
     WHERE writeups_fts MATCH @query
       AND w.status = 'public'
       ${categoryFilter}
+      ${excludeFilter}
     ORDER BY matched_terms DESC, title_phrase_score DESC, field_score DESC, rank ASC, w.date DESC, w.updated_at DESC
     LIMIT @limit OFFSET @offset
   `).all(searchParams) as (Omit<WriteupRow, 'content'> & { rank: number })[];
@@ -315,6 +330,7 @@ export function queryPublicWriteups({
     WHERE writeups_fts MATCH @query
       AND w.status = 'public'
       ${categoryFilter}
+      ${excludeFilter}
   `).get(searchParams) as { count: number };
 
   return { writeups: rows.map(toWriteupListItem), total: total.count, page: safePage, pageSize: limit };

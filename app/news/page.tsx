@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default function NewsPage() {
-  const { writeups, total, page, pageSize } = queryPublicWriteups({ query: '', page: 1, pageSize: 10, category: 'Cyber Security News' });
+  const { writeups, total, page, pageSize } = queryPublicWriteups({ query: '', page: 1, pageSize: 10, category: 'News' });
   const stats = getPublicWriteupStats();
   const ads = listAds({ activeOnly: true });
   const settings = getSiteSettings();
@@ -27,7 +27,7 @@ export default function NewsPage() {
       initialPage={page}
       pageSize={pageSize}
       initialStats={stats}
-      initialCategory="Cyber Security News"
+      initialCategory="News"
     />
   );
 }

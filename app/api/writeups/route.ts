@@ -17,8 +17,9 @@ export async function GET(request: NextRequest) {
     const pageSize = Number(request.nextUrl.searchParams.get('pageSize') ?? '10');
     const query = request.nextUrl.searchParams.get('q') ?? '';
     const category = request.nextUrl.searchParams.get('category');
+    const excludeCategory = request.nextUrl.searchParams.get('excludeCategory') ?? undefined;
     return NextResponse.json({
-      ...queryPublicWriteups({ page, pageSize, query, category: category ?? 'All' }),
+      ...queryPublicWriteups({ page, pageSize, query, category: category ?? 'All', excludeCategory }),
       stats: getPublicWriteupStats(),
     });
   }

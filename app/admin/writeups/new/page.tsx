@@ -4,7 +4,7 @@ import { WriteupInput } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
-const NEWS_CATEGORY = 'Cyber Security News';
+const NEWS_CATEGORY = 'News';
 
 const newsTemplate = `## Summary
 

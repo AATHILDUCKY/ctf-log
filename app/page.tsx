@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 
 export default async function HomePage({ searchParams }: { searchParams?: Promise<{ q?: string }> }) {
   const query = (await searchParams)?.q ?? '';
-  const { writeups, total, page, pageSize } = queryPublicWriteups({ query, page: 1, pageSize: 10 });
+  const { writeups, total, page, pageSize } = queryPublicWriteups({ query, page: 1, pageSize: 10, excludeCategory: 'News' });
   const stats = getPublicWriteupStats();
   const ads = listAds({ activeOnly: true });
   const settings = getSiteSettings();
@@ -45,6 +45,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       initialPage={page}
       pageSize={pageSize}
       initialStats={stats}
+      excludeCategory="News"
     />
   );
 }

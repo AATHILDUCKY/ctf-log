@@ -38,6 +38,7 @@ export default function Dashboard({
   pageSize = POSTS_PER_PAGE,
   initialStats,
   initialCategory = 'All',
+  excludeCategory,
 }: {
   writeups: WriteupListItem[];
   ads?: Ad[];
@@ -48,6 +49,7 @@ export default function Dashboard({
   pageSize?: number;
   initialStats: { totalWriteups: number; totalViews: number };
   initialCategory?: string;
+  excludeCategory?: string;
 }) {
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
   const [selectedCategory, setSelectedCategory] = useState<string | 'All'>(initialCategory);
@@ -58,7 +60,8 @@ export default function Dashboard({
   const [isLoading, setIsLoading] = useState(false);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  const categories: (string | 'All')[] = ['All', ...(challengeTracks.length > 0 ? challengeTracks : ['CTF', 'HackTheBox', 'TryHackMe', 'VulnHub', 'Bug Bounty', 'CVE', 'Cyber Security News'])];
+  const allTracks = challengeTracks.length > 0 ? challengeTracks : ['CTF', 'HackTheBox', 'TryHackMe', 'VulnHub', 'Bug Bounty', 'CVE', 'News'];
+  const categories: (string | 'All')[] = ['All', ...allTracks.filter((t) => t !== excludeCategory)];
   const sidebarAds = ads.filter((ad) => ad.placement === 'home-sidebar');
   const feedAds = ads.filter((ad) => ad.placement === 'home-feed').slice(0, 1);
   const socialIconMap = {
@@ -86,6 +89,7 @@ export default function Dashboard({
 
       if (searchQuery.trim()) params.set('q', searchQuery.trim());
       if (selectedCategory !== 'All') params.set('category', selectedCategory);
+      if (excludeCategory) params.set('excludeCategory', excludeCategory);
 
       setIsLoading(true);
       void fetch(`/api/writeups?${params.toString()}`, { signal: controller.signal })
@@ -342,7 +346,7 @@ export default function Dashboard({
                 </div>
 
                 <section className="space-y-4">
-                  {selectedCategory === 'Cyber Security News' ? (
+                  {selectedCategory === 'News' ? (
                     <>
                       <motion.div
                         initial={{ scale: 0.9, opacity: 0 }}
@@ -387,7 +391,7 @@ export default function Dashboard({
                   <div className="flex items-center gap-2 min-w-0">
                     <div className="w-2 h-2 bg-dracula-green rounded-full animate-pulse shrink-0" />
                     <span className="text-xs sm:text-sm font-bold text-dracula-comment uppercase tracking-widest truncate">
-                      {selectedCategory === 'Cyber Security News' ? 'Latest News' : 'Latest Discoveries'}
+                      {selectedCategory === 'News' ? 'Latest News' : 'Latest Discoveries'}
                     </span>
                   </div>
                   <span className="text-xs text-dracula-line font-mono uppercase shrink-0 ml-2">

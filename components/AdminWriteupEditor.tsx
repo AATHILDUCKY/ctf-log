@@ -32,7 +32,7 @@ import MarkdownPreview from '@/components/MarkdownPreview';
 import { Category, Writeup, WriteupInput } from '@/types';
 import { slugifyWriteupTitle } from '@/lib/writeupRoutes';
 
-const fallbackCategories: Category[] = ['CTF', 'HackTheBox', 'TryHackMe', 'VulnHub', 'Bug Bounty', 'CVE', 'Cyber Security News'];
+const fallbackCategories: Category[] = ['CTF', 'HackTheBox', 'TryHackMe', 'VulnHub', 'Bug Bounty', 'CVE', 'News'];
 const difficulties: NonNullable<Writeup['difficulty']>[] = ['Very Easy', 'Easy', 'Medium', 'Hard', 'Insane'];
 
 const ctfTemplate = `## Overview
