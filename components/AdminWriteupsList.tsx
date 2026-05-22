@@ -1,13 +1,22 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Edit3, Eye, FilePlus2, Newspaper, Search, ShieldAlert, Trash2, X } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { CheckCircle2, Edit3, Eye, FilePlus2, Newspaper, Search, ShieldAlert, Trash2, X } from 'lucide-react';
 import { Writeup, WriteupStatus } from '@/types';
 
 const NEWS_CATEGORY = 'News';
 
+function normalizeCategory(value: string) {
+  return value.trim().toLowerCase();
+}
+
 export default function AdminWriteupsList({ initialWriteups }: { initialWriteups: Writeup[] }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const savedId = searchParams.get('saved');
+
   const [writeups, setWriteups] = useState(initialWriteups);
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<WriteupStatus | 'all'>('all');
@@ -15,17 +24,41 @@ export default function AdminWriteupsList({ initialWriteups }: { initialWriteups
   const [deleteTarget, setDeleteTarget] = useState<Writeup | null>(null);
   const [message, setMessage] = useState('');
 
+  // Refresh when the page is restored from bfcache (browser back/forward)
+  useEffect(() => {
+    function onPageShow(event: PageTransitionEvent) {
+      if (event.persisted) router.refresh();
+    }
+    window.addEventListener('pageshow', onPageShow);
+    return () => window.removeEventListener('pageshow', onPageShow);
+  }, [router]);
+
+  // Sync writeups state when server passes fresh initialWriteups after navigation
+  useEffect(() => {
+    setWriteups(initialWriteups);
+  }, [initialWriteups]);
+
   const allCategories = useMemo(() => {
-    const cats = Array.from(new Set(writeups.map((w) => w.category).filter(Boolean)));
+    const cats = Array.from(new Set(writeups.map((w) => w.category.trim()).filter(Boolean)));
     return cats.sort();
   }, [writeups]);
+
+  // Auto-reset categoryFilter if the selected category no longer exists in the list
+  useEffect(() => {
+    if (categoryFilter !== 'all' && !allCategories.some((c) => normalizeCategory(c) === normalizeCategory(categoryFilter))) {
+      setCategoryFilter('all');
+    }
+  }, [allCategories, categoryFilter]);
 
   const filteredWriteups = useMemo(() => {
     const normalizedQuery = query.toLowerCase();
     return writeups.filter((writeup) => {
       const matchesStatus = statusFilter === 'all' || writeup.status === statusFilter;
-      const matchesCategory = categoryFilter === 'all' || writeup.category === categoryFilter;
+      const matchesCategory =
+        categoryFilter === 'all' ||
+        normalizeCategory(writeup.category) === normalizeCategory(categoryFilter);
       const matchesQuery =
+        !normalizedQuery ||
         writeup.title.toLowerCase().includes(normalizedQuery) ||
         writeup.summary.toLowerCase().includes(normalizedQuery) ||
         writeup.tags.some((tag) => tag.toLowerCase().includes(normalizedQuery));
@@ -52,6 +85,13 @@ export default function AdminWriteupsList({ initialWriteups }: { initialWriteups
 
   return (
     <div className="space-y-4">
+      {savedId && (
+        <div className="flex items-center gap-2 rounded-md border border-dracula-green/40 bg-dracula-green/10 px-4 py-3 text-sm text-dracula-green">
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
+          Writeup saved successfully.
+        </div>
+      )}
+
       <div className="flex flex-col gap-3 rounded-lg border border-dracula-line/40 bg-dracula-selection/10 p-4 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex min-w-0 items-center gap-2 rounded-md border border-dracula-line/50 bg-dracula-bg/70 px-3 py-2 xl:w-96">
           <Search className="h-4 w-4 text-dracula-comment" />
@@ -70,18 +110,30 @@ export default function AdminWriteupsList({ initialWriteups }: { initialWriteups
               {status}
             </button>
           ))}
-          <select
-            value={categoryFilter}
-            onChange={(event) => setCategoryFilter(event.target.value)}
-            className={`rounded-md px-3 py-2 text-xs font-bold uppercase transition-colors bg-dracula-selection/40 outline-none cursor-pointer ${
-              categoryFilter !== 'all' ? 'text-dracula-purple border border-dracula-purple/40' : 'text-dracula-comment hover:text-dracula-fg border border-transparent'
-            }`}
-          >
-            <option value="all">All Categories</option>
-            {allCategories.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
+          <div className="flex items-center gap-1">
+            <select
+              value={categoryFilter}
+              onChange={(event) => setCategoryFilter(event.target.value)}
+              className={`rounded-md px-3 py-2 text-xs font-bold uppercase transition-colors bg-dracula-selection/40 outline-none cursor-pointer ${
+                categoryFilter !== 'all' ? 'text-dracula-purple border border-dracula-purple/40' : 'text-dracula-comment hover:text-dracula-fg border border-transparent'
+              }`}
+            >
+              <option value="all">All Categories</option>
+              {allCategories.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+            {categoryFilter !== 'all' && (
+              <button
+                type="button"
+                title="Clear category filter"
+                onClick={() => setCategoryFilter('all')}
+                className="flex h-8 w-8 items-center justify-center rounded-md text-dracula-comment hover:bg-dracula-selection/40 hover:text-dracula-red"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
           {categoryFilter === NEWS_CATEGORY ? (
             <Link
               href={`/admin/writeups/new?category=${encodeURIComponent(NEWS_CATEGORY)}`}

@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { FilePlus2 } from 'lucide-react';
 import AdminShell from '@/components/AdminShell';
@@ -20,7 +21,9 @@ export default function AdminWriteupsPage() {
         </Link>
       }
     >
-      <AdminWriteupsList initialWriteups={writeups} />
+      <Suspense>
+        <AdminWriteupsList initialWriteups={writeups} />
+      </Suspense>
     </AdminShell>
   );
 }

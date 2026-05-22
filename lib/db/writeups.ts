@@ -173,6 +173,7 @@ function sanitizeInput(input: WriteupInput): WriteupInput {
     ...input,
     title: normalizedTitle,
     slug: normalizedSlug || slugifyWriteupTitle(normalizedTitle),
+    category: (input.category as string).trim(),
     author: input.author.trim(),
     summary: input.summary.trim(),
     content: cleanedContent,

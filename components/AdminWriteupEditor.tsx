@@ -303,7 +303,7 @@ export default function AdminWriteupEditor({ initialWriteup, initialDraft }: { i
     if (!initialWriteup) {
       router.replace(`/admin/writeups/${saved.id}/edit`);
     } else {
-      router.refresh();
+      router.push(`/admin/writeups?saved=${saved.id}`);
     }
   }
 
